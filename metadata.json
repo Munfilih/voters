@@ -1,0 +1,5 @@
+{
+  "name": "Household Data Collector",
+  "description": "A comprehensive tool for collecting and analyzing household and voter data by booth.",
+  "requestFramePermissions": []
+}

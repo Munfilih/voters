@@ -1,0 +1,67 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Additional profile details for the administrator.",
+      "type": "object",
+      "properties": {
+        "displayName": { "type": "string" },
+        "email": { "type": "string" },
+        "phoneNumber": { "type": "string" },
+        "organization": { "type": "string" },
+        "role": { "type": "string" },
+        "bio": { "type": "string" }
+      }
+    },
+    "Booth": {
+      "title": "Booth",
+      "description": "A polling booth or administrative area.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "ward": { "type": "string" },
+        "panchayath": { "type": "string" },
+        "niyamasabha": { "type": "string" },
+        "lokasabha": { "type": "string" },
+        "ownerId": { "type": "string" }
+      },
+      "required": ["id", "name", "ward", "panchayath", "niyamasabha", "lokasabha", "ownerId"]
+    },
+    "Voter": {
+      "title": "Voter",
+      "description": "Information about a voter and their household.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "boothId": { "type": "string" },
+        "ownerId": { "type": "string" },
+        "name": { "type": "string" },
+        "age": { "type": "number" },
+        "gender": { "type": "string", "enum": ["Male", "Female", "Other"] },
+        "voterId": { "type": "string" },
+        "address": { "type": "string" },
+        "houseNumber": { "type": "string" },
+        "category": { "type": "string", "enum": ["General", "OBC", "SC", "ST"] },
+        "incomeLevel": { "type": "string", "enum": ["Low", "Medium", "High"] },
+        "isVerified": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "boothId", "name", "age", "gender", "voterId", "address"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile documents."
+    },
+    "/booths/{boothId}": {
+      "schema": "Booth",
+      "description": "Polling booths."
+    },
+    "/voters/{voterId}": {
+      "schema": "Voter",
+      "description": "Voters and household data."
+    }
+  }
+}
