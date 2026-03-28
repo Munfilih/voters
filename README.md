@@ -1,20 +1,31 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Voters Management App
 
-# Run and deploy your AI Studio app
+A comprehensive voter management system for tracking voters, houses, and tasks.
 
-This contains everything you need to run your app locally.
+## Features
 
-View your app in AI Studio: https://ai.studio/apps/9b3e1e55-04ad-4784-8284-dd5008a64e13
+- 🏠 House Management
+- 👥 Voter Management with Support Ratings
+- 📋 Task Management
+- 📊 Dashboard Analytics
+- 🔐 Google Authentication
 
 ## Run Locally
 
-**Prerequisites:**  Node.js
-
+**Prerequisites:** Node.js 18+
 
 1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+   ```bash
+   npm install
+   ```
+
+2. Run the app:
+   ```bash
+   npm run dev
+   ```
+
+3. Open [http://localhost:3000](http://localhost:3000)
+
+## Deploy
+
+Push to `main` branch to automatically deploy via GitHub Actions.
