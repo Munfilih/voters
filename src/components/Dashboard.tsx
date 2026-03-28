@@ -59,43 +59,43 @@ export default function Dashboard({ voters, tasks = [], onNavigate }: DashboardP
   return (
     <div className="space-y-12">
       <header>
-        <h2 className="text-4xl font-sans font-semibold text-[#1a1a1a] mb-2">
+        <h2 className="text-2xl md:text-4xl font-sans font-semibold text-[#1a1a1a] mb-2">
           Booth Analytics
         </h2>
-        <p className="text-[#5A5A40]/60 font-sans">
+        <p className="text-sm md:text-base text-[#5A5A40]/60 font-sans">
           Real-time insights and demographic distribution for the selected area.
         </p>
       </header>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
         {cards.map((card, i) => (
           <div 
             key={i} 
             onClick={card.onClick}
-            className="bg-white p-8 rounded-[32px] border border-black/5 shadow-sm hover:shadow-md transition-all cursor-pointer hover:scale-105"
+            className="bg-white p-4 md:p-8 rounded-[20px] md:rounded-[32px] border border-black/5 shadow-sm hover:shadow-md transition-all cursor-pointer hover:scale-105"
           >
-            <div className="flex items-center justify-between mb-4">
-              <div className={cn("p-3 rounded-2xl bg-[#f5f5f0]", card.color)}>
-                <card.icon className="w-6 h-6" />
+            <div className="flex items-center justify-between mb-3 md:mb-4">
+              <div className={cn("p-2 md:p-3 rounded-xl md:rounded-2xl bg-[#f5f5f0]", card.color)}>
+                <card.icon className="w-4 h-4 md:w-6 md:h-6" />
               </div>
-              <TrendingUp className="w-4 h-4 text-green-500 opacity-40" />
+              <TrendingUp className="w-3 h-3 md:w-4 md:h-4 text-green-500 opacity-40" />
             </div>
-            <p className="text-[10px] uppercase tracking-widest font-bold text-[#5A5A40]/40 mb-1">{card.label}</p>
-            <h3 className="text-3xl font-sans font-bold text-[#1a1a1a]">{card.value}</h3>
+            <p className="text-[9px] md:text-[10px] uppercase tracking-widest font-bold text-[#5A5A40]/40 mb-1">{card.label}</p>
+            <h3 className="text-xl md:text-3xl font-sans font-bold text-[#1a1a1a]">{card.value}</h3>
           </div>
         ))}
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8">
         {/* Age Distribution */}
-        <div className="bg-white p-10 rounded-[40px] border border-black/5 shadow-sm">
-          <h3 className="text-xl font-sans font-semibold mb-8 flex items-center gap-3">
+        <div className="bg-white p-4 md:p-10 rounded-[24px] md:rounded-[40px] border border-black/5 shadow-sm">
+          <h3 className="text-base md:text-xl font-sans font-semibold mb-4 md:mb-8 flex items-center gap-3">
             <span className="w-2 h-2 rounded-full bg-[#5A5A40]"></span>
             Age Distribution
           </h3>
-          <div className="h-80">
+          <div className="h-64 md:h-80">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={stats.ageGroups}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
@@ -112,12 +112,12 @@ export default function Dashboard({ voters, tasks = [], onNavigate }: DashboardP
         </div>
 
         {/* Gender Distribution */}
-        <div className="bg-white p-10 rounded-[40px] border border-black/5 shadow-sm">
-          <h3 className="text-xl font-sans font-semibold mb-8 flex items-center gap-3">
+        <div className="bg-white p-4 md:p-10 rounded-[24px] md:rounded-[40px] border border-black/5 shadow-sm">
+          <h3 className="text-base md:text-xl font-sans font-semibold mb-4 md:mb-8 flex items-center gap-3">
             <span className="w-2 h-2 rounded-full bg-[#5A5A40]"></span>
             Demographics
           </h3>
-          <div className="h-80">
+          <div className="h-64 md:h-80">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -146,12 +146,12 @@ export default function Dashboard({ voters, tasks = [], onNavigate }: DashboardP
 
         {/* Support Rating Distribution */}
         {stats.supportRatings.length > 0 && (
-          <div className="bg-white p-10 rounded-[40px] border border-black/5 shadow-sm lg:col-span-2">
-            <h3 className="text-xl font-sans font-semibold mb-8 flex items-center gap-3">
+          <div className="bg-white p-4 md:p-10 rounded-[24px] md:rounded-[40px] border border-black/5 shadow-sm lg:col-span-2">
+            <h3 className="text-base md:text-xl font-sans font-semibold mb-4 md:mb-8 flex items-center gap-3">
               <span className="w-2 h-2 rounded-full bg-[#5A5A40]"></span>
               Support Rating Distribution
             </h3>
-            <div className="h-80">
+            <div className="h-64 md:h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={stats.supportRatings}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />

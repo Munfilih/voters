@@ -143,7 +143,7 @@ export default function VoterList({ voters, houses, boothId }: VoterListProps) {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-4 md:space-y-6">
       <div className="flex items-center gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5A5A40]/40" />
@@ -152,7 +152,7 @@ export default function VoterList({ voters, houses, boothId }: VoterListProps) {
             placeholder="Search voters..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 bg-white rounded-full border border-black/5 focus:outline-none focus:ring-2 focus:ring-[#5A5A40]/20 transition-all font-sans text-sm"
+            className="w-full pl-10 md:pl-12 pr-4 py-2.5 md:py-3 bg-white rounded-full border border-black/5 focus:outline-none focus:ring-2 focus:ring-[#5A5A40]/20 transition-all font-sans text-sm"
           />
         </div>
         <button
@@ -176,19 +176,19 @@ export default function VoterList({ voters, houses, boothId }: VoterListProps) {
               <div
                 key={v.id}
                 onClick={() => setSelectedVoter(v)}
-                className={`flex items-center gap-4 px-6 py-4 cursor-pointer hover:bg-[#f5f5f0] transition-all ${i > 0 ? 'border-t border-black/5' : ''}`}
+                className="flex items-center gap-3 md:gap-4 px-4 md:px-6 py-3 md:py-4 cursor-pointer hover:bg-[#f5f5f0] transition-all ${i > 0 ? 'border-t border-black/5' : ''}"
               >
-                <div className="w-12 h-12 rounded-full overflow-hidden bg-[#f5f5f0] flex items-center justify-center shrink-0">
+                <div className="w-10 h-10 md:w-12 md:h-12 rounded-full overflow-hidden bg-[#f5f5f0] flex items-center justify-center shrink-0">
                   {v.photoURL ? (
                     <img src={v.photoURL} alt={v.name} className="w-full h-full object-cover" />
                   ) : (
-                    <User className="w-6 h-6 text-[#5A5A40]/30" />
+                    <User className="w-5 h-5 md:w-6 md:h-6 text-[#5A5A40]/30" />
                   )}
                 </div>
-                <div className="flex-1">
-                  <p className="font-sans font-semibold text-[#1a1a1a]">{v.name}</p>
-                  <div className="flex items-center gap-2">
-                    <p className="text-[10px] uppercase tracking-widest font-bold text-[#5A5A40]/40">{v.voterId} · {v.gender} · {v.age}</p>
+                <div className="flex-1 min-w-0">
+                  <p className="font-sans font-semibold text-[#1a1a1a] text-sm md:text-base truncate">{v.name}</p>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="text-[9px] md:text-[10px] uppercase tracking-widest font-bold text-[#5A5A40]/40">{v.voterId} · {v.gender} · {v.age}</p>
                     {v.supportRating !== undefined && v.supportRating > 0 && (
                       <div className="flex items-center gap-0.5">
                         {[1, 2, 3, 4, 5].map(star => (
@@ -201,9 +201,9 @@ export default function VoterList({ voters, houses, boothId }: VoterListProps) {
                     )}
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 md:gap-3 shrink-0">
                   {(houseName || v.houseNumber) && (
-                    <span className="text-xs text-[#5A5A40]/40">{houseName || v.houseNumber}</span>
+                    <span className="text-xs text-[#5A5A40]/40 hidden sm:inline">{houseName || v.houseNumber}</span>
                   )}
                   {v.isVerified && <CheckCircle2 className="w-4 h-4 text-green-500" />}
                   <ChevronRight className="w-4 h-4 text-[#5A5A40]/30" />
@@ -219,10 +219,10 @@ export default function VoterList({ voters, houses, boothId }: VoterListProps) {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-3xl p-8 max-w-lg w-full shadow-2xl max-h-[90vh] overflow-hidden flex flex-col"
+            className="bg-white rounded-3xl p-6 md:p-8 max-w-lg w-full shadow-2xl max-h-[90vh] overflow-hidden flex flex-col"
           >
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-sans font-semibold">Add Voter</h3>
+            <div className="flex items-center justify-between mb-4 md:mb-6">
+              <h3 className="text-lg md:text-xl font-sans font-semibold">Add Voter</h3>
               <button onClick={() => setIsAdding(false)} className="p-1.5 rounded-full hover:bg-[#f5f5f0]">
                 <X className="w-5 h-5 text-[#5A5A40]/40" />
               </button>
