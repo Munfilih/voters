@@ -17,6 +17,7 @@ export default function BoothSelection({ onSelect }: BoothSelectionProps) {
   const [newPanchayath, setNewPanchayath] = useState('');
   const [newNiyamasabha, setNewNiyamasabha] = useState('');
   const [newLokasabha, setNewLokasabha] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
 
   useEffect(() => {
     if (!auth.currentUser) return;
@@ -33,6 +34,7 @@ export default function BoothSelection({ onSelect }: BoothSelectionProps) {
     e.preventDefault();
     if (!newBoothName || !auth.currentUser) return;
     
+    setIsCreating(true);
     try {
       const newRef = doc(collection(db, 'booths'));
       await setDoc(newRef, {
@@ -52,6 +54,8 @@ export default function BoothSelection({ onSelect }: BoothSelectionProps) {
       setIsAdding(false);
     } catch (error) {
       console.error("Error adding booth:", error);
+    } finally {
+      setIsCreating(false);
     }
   };
 
@@ -189,12 +193,46 @@ export default function BoothSelection({ onSelect }: BoothSelectionProps) {
                   </button>
                   <button 
                     type="submit"
-                    className="flex-1 py-4 px-6 rounded-full bg-[#5A5A40] text-white font-sans hover:bg-[#4a4a30] transition-colors shadow-lg"
+                    disabled={isCreating}
+                    className="flex-1 py-4 px-6 rounded-full bg-[#5A5A40] text-white font-sans hover:bg-[#4a4a30] transition-colors shadow-lg disabled:opacity-50 disabled:pointer-events-none"
                   >
-                    Create
+                    {isCreating ? 'Creating...' : 'Create'}
                   </button>
                 </div>
               </form>
+            </motion.div>
+          </div>
+        )}
+
+        {/* Full Screen Loading Effect */}
+        {isCreating && (
+          <div className="fixed inset-0 bg-gradient-to-br from-[#5A5A40] to-[#4a4a30] flex items-center justify-center z-[60]">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="text-center"
+            >
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                className="w-20 h-20 border-4 border-white/20 border-t-white rounded-full mx-auto mb-6"
+              />
+              <motion.h3
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="text-2xl md:text-3xl font-sans font-semibold text-white mb-2"
+              >
+                Creating Booth
+              </motion.h3>
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4 }}
+                className="text-white/60 font-sans text-sm"
+              >
+                Setting up your polling booth...
+              </motion.p>
             </motion.div>
           </div>
         )}
