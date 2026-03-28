@@ -250,19 +250,21 @@ export default function HouseDetail({ house, allHouses, voters, boothId, onBack,
         <div className="flex-1">
           <h2 className="text-3xl font-sans font-semibold text-[#1a1a1a]">{house.name}</h2>
           <p className="text-[#5A5A40]/50 text-sm">House No. {house.houseNumber}</p>
+          <div className="flex items-center gap-3 mt-3">
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-full border border-red-500/20 text-red-500 text-xs font-bold hover:bg-red-500/5 transition-all"
+            >
+              <Trash2 className="w-3.5 h-3.5" /> Delete
+            </button>
+            <button
+              onClick={() => setIsEditing(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-full border border-[#5A5A40]/20 text-[#5A5A40] text-xs font-bold hover:bg-[#5A5A40]/5 transition-all"
+            >
+              <Pencil className="w-3.5 h-3.5" /> Edit
+            </button>
+          </div>
         </div>
-        <button
-          onClick={() => setShowDeleteConfirm(true)}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-full border border-red-500/20 text-red-500 text-sm font-bold hover:bg-red-500/5 transition-all"
-        >
-          <Trash2 className="w-4 h-4" /> Delete
-        </button>
-        <button
-          onClick={() => setIsEditing(true)}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-full border border-[#5A5A40]/20 text-[#5A5A40] text-sm font-bold hover:bg-[#5A5A40]/5 transition-all"
-        >
-          <Pencil className="w-4 h-4" /> Edit
-        </button>
       </div>
 
       {/* Info Card */}
