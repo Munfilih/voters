@@ -181,9 +181,9 @@ export default function App() {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-[40px] p-12 max-w-md w-full shadow-2xl"
+            className="bg-white rounded-[40px] p-8 max-w-md w-full shadow-2xl"
           >
-            <h3 className="text-3xl font-sans font-semibold mb-8">Edit Booth</h3>
+            <h3 className="text-2xl font-sans font-semibold mb-6">Edit Booth</h3>
             <form onSubmit={handleSaveEditBooth} className="space-y-5">
               {(['name', 'ward', 'panchayath', 'niyamasabha', 'lokasabha'] as const).map((key) => (
                 <div key={key}>

@@ -34,7 +34,7 @@ export default function Layout({
   return (
     <div className="min-h-screen bg-[#f5f5f0] flex flex-col">
       {/* Top Navigation Bar */}
-      <header className="sticky top-0 z-50 w-full bg-white border-b border-black/5 px-6 md:px-12 py-4 shadow-sm">
+      <header className="sticky top-0 z-50 w-full bg-white border-b border-black/5 px-4 md:px-6 py-3 shadow-sm">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           {/* Logo & Booth Info */}
           <div className="flex items-center gap-6">
@@ -155,7 +155,7 @@ export default function Layout({
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto p-6 md:p-12 lg:p-20">
+      <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
         <div className="max-w-7xl mx-auto">
           {children}
         </div>
