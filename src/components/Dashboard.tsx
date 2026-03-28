@@ -105,7 +105,7 @@ export default function Dashboard({ voters, tasks = [], onNavigate }: DashboardP
                   contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}
                   cursor={{ fill: '#f5f5f0' }}
                 />
-                <Bar dataKey="count" fill="#5A5A40" radius={[8, 8, 0, 0]} barSize={40} />
+                <Bar dataKey="count" fill="#5A5A40" radius={[8, 8, 0, 0]} barSize={40} label={{ position: 'top', fill: '#5A5A40', fontSize: 14, fontWeight: 'bold' }} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -161,7 +161,7 @@ export default function Dashboard({ voters, tasks = [], onNavigate }: DashboardP
                     contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}
                     cursor={{ fill: '#f5f5f0' }}
                   />
-                  <Bar dataKey="value" fill="#FFA500" radius={[8, 8, 0, 0]} barSize={60} />
+                  <Bar dataKey="value" fill="#FFA500" radius={[8, 8, 0, 0]} barSize={60} label={{ position: 'top', fill: '#5A5A40', fontSize: 14, fontWeight: 'bold' }} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
