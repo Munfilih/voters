@@ -177,34 +177,86 @@ export default function Profile({ user, onBack }: ProfileProps) {
         throw new Error('Invalid backup file format');
       }
 
-      // Restore Booths
+      // Generate new IDs and map old IDs to new IDs
+      const boothIdMap = new Map<string, string>();
+      const houseIdMap = new Map<string, string>();
+      const voterIdMap = new Map<string, string>();
+      const taskIdMap = new Map<string, string>();
+
+      // Restore Booths with new IDs
       for (const booth of backupData.booths) {
-        await setDoc(doc(db, 'booths', booth.id), {
+        const newBoothRef = doc(collection(db, 'booths'));
+        const newBoothId = newBoothRef.id;
+        boothIdMap.set(booth.id, newBoothId);
+        
+        await setDoc(newBoothRef, {
           ...booth,
-          ownerId: user.uid // Ensure ownership
+          id: newBoothId,
+          ownerId: user.uid // Assign to current user
         });
       }
 
-      // Restore Voters
-      for (const voter of backupData.voters) {
-        await setDoc(doc(db, 'voters', voter.id), {
-          ...voter,
-          ownerId: user.uid
-        });
-      }
-
-      // Restore Houses
+      // Restore Houses with new IDs and updated boothId
       for (const house of backupData.houses) {
-        await setDoc(doc(db, 'houses', house.id), {
+        const newHouseRef = doc(collection(db, 'houses'));
+        const newHouseId = newHouseRef.id;
+        houseIdMap.set(house.id, newHouseId);
+        
+        const newBoothId = boothIdMap.get(house.boothId) || house.boothId;
+        const newMainVoterId = house.mainVoterId ? (voterIdMap.get(house.mainVoterId) || house.mainVoterId) : undefined;
+        
+        await setDoc(newHouseRef, {
           ...house,
+          id: newHouseId,
+          boothId: newBoothId,
+          ownerId: user.uid,
+          ...(newMainVoterId && { mainVoterId: newMainVoterId })
+        });
+      }
+
+      // Restore Voters with new IDs and updated boothId
+      for (const voter of backupData.voters) {
+        const newVoterRef = doc(collection(db, 'voters'));
+        const newVoterId = newVoterRef.id;
+        voterIdMap.set(voter.id, newVoterId);
+        
+        const newBoothId = boothIdMap.get(voter.boothId) || voter.boothId;
+        
+        await setDoc(newVoterRef, {
+          ...voter,
+          id: newVoterId,
+          boothId: newBoothId,
           ownerId: user.uid
         });
       }
 
-      // Restore Tasks
+      // Update houses with correct mainVoterId after all voters are created
+      for (const house of backupData.houses) {
+        if (house.mainVoterId) {
+          const newHouseId = houseIdMap.get(house.id);
+          const newMainVoterId = voterIdMap.get(house.mainVoterId);
+          if (newHouseId && newMainVoterId) {
+            await setDoc(doc(db, 'houses', newHouseId), {
+              mainVoterId: newMainVoterId
+            }, { merge: true });
+          }
+        }
+      }
+
+      // Restore Tasks with new IDs and updated references
       for (const task of backupData.tasks) {
-        await setDoc(doc(db, 'tasks', task.id), {
+        const newTaskRef = doc(collection(db, 'tasks'));
+        const newTaskId = newTaskRef.id;
+        taskIdMap.set(task.id, newTaskId);
+        
+        const newBoothId = boothIdMap.get(task.boothId) || task.boothId;
+        const newHouseId = houseIdMap.get(task.houseId) || task.houseId;
+        
+        await setDoc(newTaskRef, {
           ...task,
+          id: newTaskId,
+          boothId: newBoothId,
+          houseId: newHouseId,
           ownerId: user.uid
         });
       }
@@ -497,10 +549,11 @@ export default function Profile({ user, onBack }: ProfileProps) {
                 <ul className="list-disc list-inside space-y-1 text-amber-600">
                   <li>Exports all booths, voters, houses, and tasks</li>
                   <li>Data is saved as JSON format</li>
+                  <li>Backups can be shared and imported by anyone</li>
+                  <li>Import creates new copies with new IDs</li>
+                  <li>Your existing data remains safe during import</li>
                   <li>Store backups securely offline</li>
                   <li>Regular backups recommended weekly</li>
-                  <li>Import restores data from backup files</li>
-                  <li>Existing data with same IDs will be overwritten</li>
                 </ul>
               </div>
             </div>
@@ -517,8 +570,8 @@ export default function Profile({ user, onBack }: ProfileProps) {
             >
               <h3 className="text-2xl font-sans font-semibold mb-4 text-amber-600">Confirm Restore</h3>
               <p className="text-[#5A5A40]/60 mb-2">Are you sure you want to restore data from this backup?</p>
-              <p className="text-red-500 text-sm mb-6">
-                <strong>Warning:</strong> This will add all data from the backup file. Existing data with the same IDs will be overwritten.
+              <p className="text-amber-600 text-sm mb-6">
+                <strong>Note:</strong> This will create new copies of all data from the backup. Your existing data will remain unchanged. All imported data will be assigned to your account with new IDs.
               </p>
               
               <div className="bg-blue-50 rounded-2xl p-4 mb-6 border border-blue-100">
