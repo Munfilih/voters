@@ -18,14 +18,17 @@ export default function BoothSelection({ onSelect }: BoothSelectionProps) {
   const [newNiyamasabha, setNewNiyamasabha] = useState('');
   const [newLokasabha, setNewLokasabha] = useState('');
   const [isCreating, setIsCreating] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!auth.currentUser) return;
 
+    setLoading(true);
     const q = query(collection(db, 'booths'), where('ownerId', '==', auth.currentUser.uid));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Booth));
       setBooths(data);
+      setLoading(false);
     });
     return () => unsubscribe();
   }, []);
@@ -64,6 +67,41 @@ export default function BoothSelection({ onSelect }: BoothSelectionProps) {
     (b.panchayath?.toLowerCase() ?? '').includes(search.toLowerCase()) ||
     (b.ward?.toLowerCase() ?? '').includes(search.toLowerCase())
   );
+
+  // Full Screen Loading Effect
+  if (loading) {
+    return (
+      <div className="fixed inset-0 bg-gradient-to-br from-[#5A5A40] to-[#4a4a30] flex items-center justify-center z-50">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center"
+        >
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            className="w-20 h-20 border-4 border-white/20 border-t-white rounded-full mx-auto mb-6"
+          />
+          <motion.h3
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="text-2xl md:text-3xl font-sans font-semibold text-white mb-2"
+          >
+            Loading Booths
+          </motion.h3>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="text-white/60 font-sans text-sm"
+          >
+            Please wait while we fetch your polling booths...
+          </motion.p>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full">
