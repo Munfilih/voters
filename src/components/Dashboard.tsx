@@ -34,11 +34,11 @@ export default function Dashboard({ voters, tasks = [], onNavigate }: DashboardP
 
     // Support rating distribution
     const supportRatings = [
-      { name: '1 Star', value: voters.filter(v => v.supportRating === 1).length, fill: '#22C55E' },
-      { name: '2 Stars', value: voters.filter(v => v.supportRating === 2).length, fill: '#84CC16' },
-      { name: '3 Stars', value: voters.filter(v => v.supportRating === 3).length, fill: '#EAB308' },
-      { name: '4 Stars', value: voters.filter(v => v.supportRating === 4).length, fill: '#F97316' },
-      { name: '5 Stars', value: voters.filter(v => v.supportRating === 5).length, fill: '#EF4444' },
+      { name: 'Strong Opposition', value: voters.filter(v => v.supportRating === 1).length, fill: '#22C55E' },
+      { name: 'Likely Opposition', value: voters.filter(v => v.supportRating === 2).length, fill: '#84CC16' },
+      { name: 'Neutral/Undecided', value: voters.filter(v => v.supportRating === 3).length, fill: '#EAB308' },
+      { name: 'Likely Support', value: voters.filter(v => v.supportRating === 4).length, fill: '#F97316' },
+      { name: 'Strong Support', value: voters.filter(v => v.supportRating === 5).length, fill: '#EF4444' },
     ].filter(s => s.value > 0);
 
     const ratedVoters = voters.filter(v => v.supportRating && v.supportRating > 0);
@@ -259,7 +259,7 @@ export default function Dashboard({ voters, tasks = [], onNavigate }: DashboardP
           <div className="bg-white p-4 md:p-10 rounded-[24px] md:rounded-[40px] border border-black/5 shadow-sm lg:col-span-2">
             <h3 className="text-base md:text-xl font-sans font-semibold mb-4 md:mb-8 flex items-center gap-3">
               <span className="w-2 h-2 rounded-full bg-[#5A5A40]"></span>
-              Support Rating Distribution
+              Voter Support Analysis
             </h3>
             <div className="space-y-4">
               {stats.supportRatings.map((rating, index) => {
