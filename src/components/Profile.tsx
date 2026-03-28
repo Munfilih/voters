@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { User } from 'firebase/auth';
 import { motion } from 'motion/react';
-import { User as UserIcon, Mail, Camera, Save, CheckCircle2, AlertCircle, ArrowLeft, Phone, Building2, Briefcase, FileText } from 'lucide-react';
-import { updateProfile, db, doc, getDoc, setDoc } from '../firebase';
+import { User as UserIcon, Mail, Camera, Save, CheckCircle2, AlertCircle, ArrowLeft, Phone, Building2, Briefcase, FileText, Download, Upload, Database } from 'lucide-react';
+import { updateProfile, db, doc, getDoc, setDoc, collection, query, where, getDocs } from '../firebase';
 
 interface ProfileProps {
   user: User;
@@ -21,6 +21,8 @@ export default function Profile({ user, onBack }: ProfileProps) {
   const [fetching, setFetching] = useState(true);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [backingUp, setBackingUp] = useState(false);
+  const [backupSuccess, setBackupSuccess] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -72,6 +74,74 @@ export default function Profile({ user, onBack }: ProfileProps) {
       setError(err.message || "Failed to update profile.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleBackupData = async () => {
+    setBackingUp(true);
+    setBackupSuccess(false);
+    setError(null);
+
+    try {
+      // Fetch all user data
+      const backupData: any = {
+        exportDate: new Date().toISOString(),
+        user: {
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName,
+          phoneNumber,
+          organization,
+          role,
+          bio
+        },
+        booths: [],
+        voters: [],
+        houses: [],
+        tasks: []
+      };
+
+      // Fetch Booths
+      const boothsQuery = query(collection(db, 'booths'), where('ownerId', '==', user.uid));
+      const boothsSnapshot = await getDocs(boothsQuery);
+      backupData.booths = boothsSnapshot.docs.map(d => d.data());
+
+      // Fetch Voters
+      const votersQuery = query(collection(db, 'voters'), where('ownerId', '==', user.uid));
+      const votersSnapshot = await getDocs(votersQuery);
+      backupData.voters = votersSnapshot.docs.map(d => d.data());
+
+      // Fetch Houses
+      const housesQuery = query(collection(db, 'houses'), where('ownerId', '==', user.uid));
+      const housesSnapshot = await getDocs(housesQuery);
+      backupData.houses = housesSnapshot.docs.map(d => d.data());
+
+      // Fetch Tasks
+      const tasksQuery = query(collection(db, 'tasks'), where('ownerId', '==', user.uid));
+      const tasksSnapshot = await getDocs(tasksQuery);
+      backupData.tasks = tasksSnapshot.docs.map(d => d.data());
+
+      // Create JSON file
+      const jsonString = JSON.stringify(backupData, null, 2);
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      
+      // Download file
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `voters-backup-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      setBackupSuccess(true);
+      setTimeout(() => setBackupSuccess(false), 5000);
+    } catch (err: any) {
+      console.error("Backup Error:", err);
+      setError(err.message || "Failed to backup data.");
+    } finally {
+      setBackingUp(false);
     }
   };
 
@@ -269,6 +339,70 @@ export default function Profile({ user, onBack }: ProfileProps) {
             )}
           </button>
         </form>
+
+        {/* Backup Section */}
+        <div className="mt-12 pt-10 border-t border-black/5">
+          <h4 className="text-sm font-bold uppercase tracking-widest text-[#5A5A40] mb-6">Data Management</h4>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <button
+              onClick={handleBackupData}
+              disabled={backingUp}
+              className="flex items-center justify-center gap-3 p-6 bg-gradient-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 rounded-3xl border border-blue-200 transition-all group disabled:opacity-50 disabled:pointer-events-none"
+            >
+              <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center group-hover:scale-110 transition-transform">
+                {backingUp ? (
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <Download className="w-6 h-6 text-white" />
+                )}
+              </div>
+              <div className="text-left">
+                <p className="font-sans font-bold text-blue-900">Export Backup</p>
+                <p className="text-xs text-blue-600">Download all your data</p>
+              </div>
+            </button>
+
+            <div className="flex items-center justify-center gap-3 p-6 bg-gradient-to-br from-gray-50 to-gray-100 rounded-3xl border border-gray-200 opacity-50 cursor-not-allowed">
+              <div className="w-12 h-12 rounded-full bg-gray-400 flex items-center justify-center">
+                <Upload className="w-6 h-6 text-white" />
+              </div>
+              <div className="text-left">
+                <p className="font-sans font-bold text-gray-700">Import Backup</p>
+                <p className="text-xs text-gray-500">Coming soon</p>
+              </div>
+            </div>
+          </div>
+
+          {backupSuccess && (
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-4 p-4 bg-green-50 rounded-2xl flex items-center gap-3 text-green-600 text-sm border border-green-100"
+            >
+              <CheckCircle2 className="w-5 h-5 shrink-0" />
+              <div>
+                <p className="font-bold">Backup completed successfully!</p>
+                <p className="text-xs text-green-500 mt-1">Your data has been exported to a JSON file.</p>
+              </div>
+            </motion.div>
+          )}
+
+          <div className="mt-6 p-4 bg-amber-50 rounded-2xl border border-amber-100">
+            <div className="flex gap-3">
+              <Database className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+              <div className="text-xs text-amber-700 leading-relaxed">
+                <p className="font-bold mb-1">Backup Information:</p>
+                <ul className="list-disc list-inside space-y-1 text-amber-600">
+                  <li>Exports all booths, voters, houses, and tasks</li>
+                  <li>Data is saved as JSON format</li>
+                  <li>Store backups securely offline</li>
+                  <li>Regular backups recommended weekly</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
