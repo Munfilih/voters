@@ -180,12 +180,7 @@ export default function Dashboard({ voters, tasks = [], onNavigate }: DashboardP
               </div>
             </div>
 
-            <div className="mt-4 p-3 bg-blue-50 rounded-xl border border-blue-100">
-              <p className="text-[10px] text-blue-600 leading-relaxed">
-                <strong>Prediction Logic:</strong> Based on support ratings (5★=95%, 4★=75%, 3★=50%, 2★=25%, 1★=5%), 
-                verification status (+10% boost), and unrated voters (50% if verified, 30% if not).
-              </p>
-            </div>
+
           </div>
         </div>
 
@@ -232,7 +227,7 @@ export default function Dashboard({ voters, tasks = [], onNavigate }: DashboardP
             <span className="w-2 h-2 rounded-full bg-[#5A5A40]"></span>
             Demographics
           </h3>
-          <div className="h-64 md:h-80">
+          <div className="h-48 md:h-80">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -266,40 +261,34 @@ export default function Dashboard({ voters, tasks = [], onNavigate }: DashboardP
               <span className="w-2 h-2 rounded-full bg-[#5A5A40]"></span>
               Support Rating Distribution
             </h3>
-            <div className="h-64 md:h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={stats.supportRatings}>
-                  <defs>
-                    {stats.supportRatings.map((entry, index) => (
-                      <linearGradient key={index} id={`gradient-${index}`} x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor={entry.fill} stopOpacity={1} />
-                        <stop offset="100%" stopColor={entry.fill} stopOpacity={0.7} />
-                      </linearGradient>
-                    ))}
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#5A5A40', opacity: 0.6 }} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#5A5A40', opacity: 0.6 }} />
-                  <Tooltip 
-                    contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}
-                    cursor={{ fill: '#f5f5f0' }}
-                  />
-                  {stats.supportRatings.map((entry, index) => (
-                    <Bar 
-                      key={index}
-                      dataKey="value" 
-                      fill={`url(#gradient-${index})`}
-                      radius={[12, 12, 0, 0]} 
-                      barSize={60}
-                      data={[entry]}
-                      label={{ position: 'top', fill: '#5A5A40', fontSize: 14, fontWeight: 'bold' }}
-                      style={{
-                        filter: 'drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.15))'
-                      }}
-                    />
-                  ))}
-                </BarChart>
-              </ResponsiveContainer>
+            <div className="space-y-4">
+              {stats.supportRatings.map((rating, index) => {
+                const percentage = stats.total > 0 ? (rating.value / stats.total) * 100 : 0;
+                return (
+                  <div key={index} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: rating.fill }}></div>
+                        <span className="text-sm font-medium text-[#5A5A40]">{rating.name}</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs text-[#5A5A40]/60">{percentage.toFixed(1)}%</span>
+                        <span className="text-sm font-bold text-[#5A5A40] min-w-[2rem] text-right">{rating.value}</span>
+                      </div>
+                    </div>
+                    <div className="w-full bg-[#f5f5f0] rounded-full h-3 overflow-hidden">
+                      <div 
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{ 
+                          width: `${percentage}%`,
+                          background: `linear-gradient(90deg, ${rating.fill} 0%, ${rating.fill}CC 100%)`,
+                          boxShadow: `0 2px 8px ${rating.fill}40`
+                        }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
