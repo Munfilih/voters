@@ -34,11 +34,11 @@ export default function Dashboard({ voters, tasks = [], onNavigate }: DashboardP
 
     // Support rating distribution
     const supportRatings = [
-      { name: '1 Star', value: voters.filter(v => v.supportRating === 1).length },
-      { name: '2 Stars', value: voters.filter(v => v.supportRating === 2).length },
-      { name: '3 Stars', value: voters.filter(v => v.supportRating === 3).length },
-      { name: '4 Stars', value: voters.filter(v => v.supportRating === 4).length },
-      { name: '5 Stars', value: voters.filter(v => v.supportRating === 5).length },
+      { name: '1 Star', value: voters.filter(v => v.supportRating === 1).length, fill: '#22C55E' },
+      { name: '2 Stars', value: voters.filter(v => v.supportRating === 2).length, fill: '#84CC16' },
+      { name: '3 Stars', value: voters.filter(v => v.supportRating === 3).length, fill: '#EAB308' },
+      { name: '4 Stars', value: voters.filter(v => v.supportRating === 4).length, fill: '#F97316' },
+      { name: '5 Stars', value: voters.filter(v => v.supportRating === 5).length, fill: '#EF4444' },
     ].filter(s => s.value > 0);
 
     const ratedVoters = voters.filter(v => v.supportRating && v.supportRating > 0);
@@ -98,6 +98,12 @@ export default function Dashboard({ voters, tasks = [], onNavigate }: DashboardP
           <div className="h-64 md:h-80">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={stats.ageGroups}>
+                <defs>
+                  <linearGradient id="ageGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#5A5A40" stopOpacity={1} />
+                    <stop offset="100%" stopColor="#5A5A40" stopOpacity={0.6} />
+                  </linearGradient>
+                </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#5A5A40', opacity: 0.6 }} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#5A5A40', opacity: 0.6 }} />
@@ -105,7 +111,16 @@ export default function Dashboard({ voters, tasks = [], onNavigate }: DashboardP
                   contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}
                   cursor={{ fill: '#f5f5f0' }}
                 />
-                <Bar dataKey="count" fill="#5A5A40" radius={[8, 8, 0, 0]} barSize={40} label={{ position: 'top', fill: '#5A5A40', fontSize: 14, fontWeight: 'bold' }} />
+                <Bar 
+                  dataKey="count" 
+                  fill="url(#ageGradient)" 
+                  radius={[12, 12, 0, 0]} 
+                  barSize={40} 
+                  label={{ position: 'top', fill: '#5A5A40', fontSize: 14, fontWeight: 'bold' }}
+                  style={{
+                    filter: 'drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.15))'
+                  }}
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -154,6 +169,14 @@ export default function Dashboard({ voters, tasks = [], onNavigate }: DashboardP
             <div className="h-64 md:h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={stats.supportRatings}>
+                  <defs>
+                    {stats.supportRatings.map((entry, index) => (
+                      <linearGradient key={index} id={`gradient-${index}`} x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={entry.fill} stopOpacity={1} />
+                        <stop offset="100%" stopColor={entry.fill} stopOpacity={0.7} />
+                      </linearGradient>
+                    ))}
+                  </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
                   <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#5A5A40', opacity: 0.6 }} />
                   <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#5A5A40', opacity: 0.6 }} />
@@ -161,7 +184,20 @@ export default function Dashboard({ voters, tasks = [], onNavigate }: DashboardP
                     contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}
                     cursor={{ fill: '#f5f5f0' }}
                   />
-                  <Bar dataKey="value" fill="#FFA500" radius={[8, 8, 0, 0]} barSize={60} label={{ position: 'top', fill: '#5A5A40', fontSize: 14, fontWeight: 'bold' }} />
+                  {stats.supportRatings.map((entry, index) => (
+                    <Bar 
+                      key={index}
+                      dataKey="value" 
+                      fill={`url(#gradient-${index})`}
+                      radius={[12, 12, 0, 0]} 
+                      barSize={60}
+                      data={[entry]}
+                      label={{ position: 'top', fill: '#5A5A40', fontSize: 14, fontWeight: 'bold' }}
+                      style={{
+                        filter: 'drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.15))'
+                      }}
+                    />
+                  ))}
                 </BarChart>
               </ResponsiveContainer>
             </div>
