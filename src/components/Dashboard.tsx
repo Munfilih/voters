@@ -101,7 +101,7 @@ export default function Dashboard({ voters, tasks = [], onNavigate }: DashboardP
   ];
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-12" key={`dashboard-${voters.length}-${stats.predictedVotes}`}>
       <header>
         <h2 className="text-2xl md:text-4xl font-sans font-semibold text-[#1a1a1a] mb-2">
           Booth Analytics
