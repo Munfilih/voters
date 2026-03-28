@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { auth, db, onAuthStateChanged, signOut, signInWithPopup, googleProvider, collection, onSnapshot, query, where, getDocs, setDoc, doc } from './firebase';
+import { auth, db, onAuthStateChanged, signOut, signInWithPopup, googleProvider, collection, onSnapshot, query, where, getDocs, setDoc, doc, deleteDoc } from './firebase';
 import { User } from 'firebase/auth';
 import { Booth, Voter, View, Task } from './types';
 import Login from './components/Login';
@@ -25,6 +25,9 @@ export default function App() {
   const [editingBooth, setEditingBooth] = useState(false);
   const [editForm, setEditForm] = useState({ name: '', ward: '', panchayath: '', niyamasabha: '', lokasabha: '' });
   const [editSaving, setEditSaving] = useState(false);
+  const [deletingBooth, setDeletingBooth] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleteError, setDeleteError] = useState('');
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -121,6 +124,61 @@ export default function App() {
     }
   };
 
+  const handleDeleteBooth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentBooth || !user) return;
+    
+    // Password verification
+    if (deletePassword !== 'DELETE') {
+      setDeleteError('Incorrect password. Type DELETE to confirm.');
+      return;
+    }
+
+    setEditSaving(true);
+    try {
+      // Delete all voters in this booth
+      const votersQuery = query(
+        collection(db, 'voters'),
+        where('boothId', '==', currentBooth.id),
+        where('ownerId', '==', user.uid)
+      );
+      const votersSnapshot = await getDocs(votersQuery);
+      await Promise.all(votersSnapshot.docs.map(d => deleteDoc(doc(db, 'voters', d.id))));
+
+      // Delete all houses in this booth
+      const housesQuery = query(
+        collection(db, 'houses'),
+        where('boothId', '==', currentBooth.id),
+        where('ownerId', '==', user.uid)
+      );
+      const housesSnapshot = await getDocs(housesQuery);
+      await Promise.all(housesSnapshot.docs.map(d => deleteDoc(doc(db, 'houses', d.id))));
+
+      // Delete all tasks in this booth
+      const tasksQuery = query(
+        collection(db, 'tasks'),
+        where('boothId', '==', currentBooth.id),
+        where('ownerId', '==', user.uid)
+      );
+      const tasksSnapshot = await getDocs(tasksQuery);
+      await Promise.all(tasksSnapshot.docs.map(d => deleteDoc(doc(db, 'tasks', d.id))));
+
+      // Delete the booth itself
+      await deleteDoc(doc(db, 'booths', currentBooth.id));
+
+      // Reset state
+      setCurrentBooth(null);
+      setDeletingBooth(false);
+      setDeletePassword('');
+      setDeleteError('');
+    } catch (error) {
+      console.error('Error deleting booth:', error);
+      setDeleteError('Failed to delete booth. Please try again.');
+    } finally {
+      setEditSaving(false);
+    }
+  };
+
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -146,6 +204,7 @@ export default function App() {
       onLogout={user ? handleLogout : undefined}
       onChangeBooth={user && currentBooth ? () => setCurrentBooth(null) : undefined}
       onEditBooth={user && currentBooth ? handleEditBooth : undefined}
+      onDeleteBooth={user && currentBooth ? () => setDeletingBooth(true) : undefined}
     >
       {!user ? (
         <Login onLogin={handleLogin} />
@@ -174,6 +233,63 @@ export default function App() {
             )}
           </motion.div>
         </AnimatePresence>
+      )}
+
+      {deletingBooth && currentBooth && (
+        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-[40px] p-8 max-w-md w-full shadow-2xl"
+          >
+            <h3 className="text-2xl font-sans font-semibold mb-4 text-red-600">Delete Booth</h3>
+            <p className="text-[#5A5A40]/60 mb-2">Are you sure you want to delete <strong>{currentBooth.name}</strong>?</p>
+            <p className="text-red-500 text-sm mb-6">Warning: This will permanently delete all voters, houses, and tasks in this booth.</p>
+            
+            <form onSubmit={handleDeleteBooth} className="space-y-4">
+              <div>
+                <label className="block text-xs uppercase tracking-widest font-bold text-[#5A5A40]/60 mb-2">
+                  Type DELETE to confirm
+                </label>
+                <input
+                  type="text"
+                  value={deletePassword}
+                  onChange={(e) => {
+                    setDeletePassword(e.target.value);
+                    setDeleteError('');
+                  }}
+                  className="w-full px-6 py-4 bg-[#f5f5f0] rounded-2xl focus:outline-none focus:ring-2 focus:ring-red-500/20 font-sans"
+                  placeholder="Type DELETE"
+                  autoFocus
+                />
+                {deleteError && (
+                  <p className="text-red-500 text-xs mt-2">{deleteError}</p>
+                )}
+              </div>
+              
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDeletingBooth(false);
+                    setDeletePassword('');
+                    setDeleteError('');
+                  }}
+                  className="flex-1 py-4 px-6 rounded-full border border-[#5A5A40]/20 text-[#5A5A40] font-sans hover:bg-[#f5f5f0] transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={editSaving}
+                  className="flex-1 py-4 px-6 rounded-full bg-red-500 text-white font-sans hover:bg-red-600 transition-colors shadow-lg disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2"
+                >
+                  {editSaving ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : 'Delete Booth'}
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        </div>
       )}
 
       {editingBooth && currentBooth && (

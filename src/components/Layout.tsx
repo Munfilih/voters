@@ -1,7 +1,7 @@
 import React from 'react';
 import { User } from 'firebase/auth';
 import { Booth, View } from '../types';
-import { LayoutDashboard, Users, Building2, LogOut, Home, Pencil } from 'lucide-react';
+import { LayoutDashboard, Users, Building2, LogOut, Home, Pencil, Trash2 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 interface LayoutProps {
@@ -12,6 +12,7 @@ interface LayoutProps {
   onLogout?: () => void;
   onChangeBooth?: () => void;
   onEditBooth?: () => void;
+  onDeleteBooth?: () => void;
   children: React.ReactNode;
 }
 
@@ -23,6 +24,7 @@ export default function Layout({
   onLogout, 
   onChangeBooth,
   onEditBooth,
+  onDeleteBooth,
   children 
 }: LayoutProps) {
   const navItems = [
@@ -62,15 +64,26 @@ export default function Layout({
                     <p className="text-[9px] uppercase tracking-widest font-bold text-[#5A5A40]/40 leading-none mb-0.5">Booth</p>
                     <p className="text-sm font-sans font-semibold text-[#1a1a1a] leading-none">{currentBooth.name}</p>
                   </div>
-                  {onEditBooth && (
-                    <button
-                      onClick={onEditBooth}
-                      className="p-2 rounded-full hover:bg-[#5A5A40]/10 transition-all"
-                      title="Edit Booth Info"
-                    >
-                      <Pencil className="w-3.5 h-3.5 text-[#5A5A40]/40 hover:text-[#5A5A40]" />
-                    </button>
-                  )}
+                  <div className="flex items-center gap-1">
+                    {onEditBooth && (
+                      <button
+                        onClick={onEditBooth}
+                        className="p-2 rounded-full hover:bg-[#5A5A40]/10 transition-all"
+                        title="Edit Booth Info"
+                      >
+                        <Pencil className="w-3.5 h-3.5 text-[#5A5A40]/40 hover:text-[#5A5A40]" />
+                      </button>
+                    )}
+                    {onDeleteBooth && (
+                      <button
+                        onClick={onDeleteBooth}
+                        className="p-2 rounded-full hover:bg-red-50 transition-all"
+                        title="Delete Booth"
+                      >
+                        <Trash2 className="w-3.5 h-3.5 text-red-400 hover:text-red-600" />
+                      </button>
+                    )}
+                  </div>
                 </div>
               </>
             )}
