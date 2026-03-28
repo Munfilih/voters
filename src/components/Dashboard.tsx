@@ -227,7 +227,7 @@ export default function Dashboard({ voters, tasks = [], onNavigate }: DashboardP
             <span className="w-2 h-2 rounded-full bg-[#5A5A40]"></span>
             Demographics
           </h3>
-          <div className="h-48 md:h-80">
+          <div className="h-56 md:h-80">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -238,8 +238,8 @@ export default function Dashboard({ voters, tasks = [], onNavigate }: DashboardP
                   ].filter(d => d.value > 0)}
                   cx="50%"
                   cy="50%"
-                  innerRadius={60}
-                  outerRadius={100}
+                  innerRadius={40}
+                  outerRadius={70}
                   paddingAngle={8}
                   dataKey="value"
                 >
@@ -248,7 +248,7 @@ export default function Dashboard({ voters, tasks = [], onNavigate }: DashboardP
                   ))}
                 </Pie>
                 <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }} />
-                <Legend verticalAlign="bottom" height={36} iconType="circle" />
+                <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
               </PieChart>
             </ResponsiveContainer>
           </div>
