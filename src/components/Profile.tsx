@@ -23,6 +23,10 @@ export default function Profile({ user, onBack }: ProfileProps) {
   const [error, setError] = useState<string | null>(null);
   const [backingUp, setBackingUp] = useState(false);
   const [backupSuccess, setBackupSuccess] = useState(false);
+  const [restoring, setRestoring] = useState(false);
+  const [restoreSuccess, setRestoreSuccess] = useState(false);
+  const [showRestoreConfirm, setShowRestoreConfirm] = useState(false);
+  const [restoreFile, setRestoreFile] = useState<File | null>(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -142,6 +146,77 @@ export default function Profile({ user, onBack }: ProfileProps) {
       setError(err.message || "Failed to backup data.");
     } finally {
       setBackingUp(false);
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && file.type === 'application/json') {
+      setRestoreFile(file);
+      setShowRestoreConfirm(true);
+    } else {
+      setError('Please select a valid JSON backup file.');
+    }
+  };
+
+  const handleRestoreData = async () => {
+    if (!restoreFile) return;
+    
+    setRestoring(true);
+    setRestoreSuccess(false);
+    setError(null);
+    setShowRestoreConfirm(false);
+
+    try {
+      // Read file
+      const fileText = await restoreFile.text();
+      const backupData = JSON.parse(fileText);
+
+      // Validate backup structure
+      if (!backupData.booths || !backupData.voters || !backupData.houses || !backupData.tasks) {
+        throw new Error('Invalid backup file format');
+      }
+
+      // Restore Booths
+      for (const booth of backupData.booths) {
+        await setDoc(doc(db, 'booths', booth.id), {
+          ...booth,
+          ownerId: user.uid // Ensure ownership
+        });
+      }
+
+      // Restore Voters
+      for (const voter of backupData.voters) {
+        await setDoc(doc(db, 'voters', voter.id), {
+          ...voter,
+          ownerId: user.uid
+        });
+      }
+
+      // Restore Houses
+      for (const house of backupData.houses) {
+        await setDoc(doc(db, 'houses', house.id), {
+          ...house,
+          ownerId: user.uid
+        });
+      }
+
+      // Restore Tasks
+      for (const task of backupData.tasks) {
+        await setDoc(doc(db, 'tasks', task.id), {
+          ...task,
+          ownerId: user.uid
+        });
+      }
+
+      setRestoreSuccess(true);
+      setRestoreFile(null);
+      setTimeout(() => setRestoreSuccess(false), 5000);
+    } catch (err: any) {
+      console.error("Restore Error:", err);
+      setError(err.message || "Failed to restore data. Please check the backup file.");
+    } finally {
+      setRestoring(false);
     }
   };
 
@@ -363,14 +438,26 @@ export default function Profile({ user, onBack }: ProfileProps) {
               </div>
             </button>
 
-            <div className="flex items-center justify-center gap-3 p-6 bg-gradient-to-br from-gray-50 to-gray-100 rounded-3xl border border-gray-200 opacity-50 cursor-not-allowed">
-              <div className="w-12 h-12 rounded-full bg-gray-400 flex items-center justify-center">
-                <Upload className="w-6 h-6 text-white" />
-              </div>
-              <div className="text-left">
-                <p className="font-sans font-bold text-gray-700">Import Backup</p>
-                <p className="text-xs text-gray-500">Coming soon</p>
-              </div>
+            <div className="relative">
+              <input
+                type="file"
+                accept=".json"
+                onChange={handleFileSelect}
+                className="hidden"
+                id="restore-file-input"
+              />
+              <label
+                htmlFor="restore-file-input"
+                className="flex items-center justify-center gap-3 p-6 bg-gradient-to-br from-green-50 to-green-100 hover:from-green-100 hover:to-green-200 rounded-3xl border border-green-200 transition-all group cursor-pointer"
+              >
+                <div className="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Upload className="w-6 h-6 text-white" />
+                </div>
+                <div className="text-left">
+                  <p className="font-sans font-bold text-green-900">Import Backup</p>
+                  <p className="text-xs text-green-600">Restore from backup file</p>
+                </div>
+              </label>
             </div>
           </div>
 
@@ -388,6 +475,20 @@ export default function Profile({ user, onBack }: ProfileProps) {
             </motion.div>
           )}
 
+          {restoreSuccess && (
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-4 p-4 bg-green-50 rounded-2xl flex items-center gap-3 text-green-600 text-sm border border-green-100"
+            >
+              <CheckCircle2 className="w-5 h-5 shrink-0" />
+              <div>
+                <p className="font-bold">Data restored successfully!</p>
+                <p className="text-xs text-green-500 mt-1">All data has been imported from the backup file.</p>
+              </div>
+            </motion.div>
+          )}
+
           <div className="mt-6 p-4 bg-amber-50 rounded-2xl border border-amber-100">
             <div className="flex gap-3">
               <Database className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
@@ -398,11 +499,98 @@ export default function Profile({ user, onBack }: ProfileProps) {
                   <li>Data is saved as JSON format</li>
                   <li>Store backups securely offline</li>
                   <li>Regular backups recommended weekly</li>
+                  <li>Import restores data from backup files</li>
+                  <li>Existing data with same IDs will be overwritten</li>
                 </ul>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Restore Confirmation Modal */}
+        {showRestoreConfirm && (
+          <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-white rounded-[40px] p-10 max-w-md w-full shadow-2xl"
+            >
+              <h3 className="text-2xl font-sans font-semibold mb-4 text-amber-600">Confirm Restore</h3>
+              <p className="text-[#5A5A40]/60 mb-2">Are you sure you want to restore data from this backup?</p>
+              <p className="text-red-500 text-sm mb-6">
+                <strong>Warning:</strong> This will add all data from the backup file. Existing data with the same IDs will be overwritten.
+              </p>
+              
+              <div className="bg-blue-50 rounded-2xl p-4 mb-6 border border-blue-100">
+                <p className="text-xs text-blue-600">
+                  <strong>File:</strong> {restoreFile?.name}
+                </p>
+                <p className="text-xs text-blue-600 mt-1">
+                  <strong>Size:</strong> {restoreFile ? (restoreFile.size / 1024).toFixed(2) : 0} KB
+                </p>
+              </div>
+              
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowRestoreConfirm(false);
+                    setRestoreFile(null);
+                  }}
+                  className="flex-1 py-4 px-6 rounded-full border border-[#5A5A40]/20 text-[#5A5A40] font-sans hover:bg-[#f5f5f0] transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleRestoreData}
+                  disabled={restoring}
+                  className="flex-1 py-4 px-6 rounded-full bg-amber-500 text-white font-sans hover:bg-amber-600 transition-colors shadow-lg disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2"
+                >
+                  {restoring ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Restoring...
+                    </>
+                  ) : (
+                    'Restore Data'
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {/* Full Screen Restoring Effect */}
+        {restoring && (
+          <div className="fixed inset-0 bg-gradient-to-br from-green-600 to-green-800 flex items-center justify-center z-[60]">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="text-center"
+            >
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                className="w-20 h-20 border-4 border-white/20 border-t-white rounded-full mx-auto mb-6"
+              />
+              <motion.h3
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="text-2xl md:text-3xl font-sans font-semibold text-white mb-2"
+              >
+                Restoring Data
+              </motion.h3>
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4 }}
+                className="text-white/60 font-sans text-sm"
+              >
+                Importing your backup data...
+              </motion.p>
+            </motion.div>
+          </div>
+        )}
       </div>
     </div>
   );
