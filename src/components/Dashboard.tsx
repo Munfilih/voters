@@ -46,14 +46,58 @@ export default function Dashboard({ voters, tasks = [], onNavigate }: DashboardP
       ? ratedVoters.reduce((sum, v) => sum + (v.supportRating || 0), 0) / ratedVoters.length 
       : 0;
 
-    return { total, verified, pending, male, female, other, ageGroups, supportRatings, avgSupport };
+    // Predicted Votes Calculation
+    // Logic: Calculate expected votes based on support ratings and verification status
+    let predictedVotes = 0;
+    
+    voters.forEach(v => {
+      if (!v.supportRating || v.supportRating === 0) {
+        // No rating: assume 50% chance if verified, 30% if not
+        predictedVotes += v.isVerified ? 0.5 : 0.3;
+      } else {
+        // Rating-based prediction:
+        // 5 stars (Strong Support): 95% probability
+        // 4 stars (Likely Support): 75% probability
+        // 3 stars (Neutral): 50% probability
+        // 2 stars (Likely Opposition): 25% probability
+        // 1 star (Strong Opposition): 5% probability
+        const probabilities = [0.05, 0.25, 0.5, 0.75, 0.95];
+        const baseProbability = probabilities[v.supportRating - 1];
+        
+        // Boost probability by 10% if verified (more reliable data)
+        const verificationBoost = v.isVerified ? 0.1 : 0;
+        const finalProbability = Math.min(baseProbability + verificationBoost, 1);
+        
+        predictedVotes += finalProbability;
+      }
+    });
+
+    // Calculate confidence level based on rated voters percentage
+    const ratedPercentage = total > 0 ? (ratedVoters.length / total) * 100 : 0;
+    const verifiedPercentage = total > 0 ? (verified / total) * 100 : 0;
+    const confidenceLevel = ((ratedPercentage * 0.7) + (verifiedPercentage * 0.3));
+
+    return { 
+      total, 
+      verified, 
+      pending, 
+      male, 
+      female, 
+      other, 
+      ageGroups, 
+      supportRatings, 
+      avgSupport,
+      predictedVotes: Math.round(predictedVotes),
+      confidenceLevel: Math.round(confidenceLevel),
+      ratedCount: ratedVoters.length
+    };
   }, [voters]);
 
   const cards = [
     { label: 'Total Voters', value: stats.total, icon: Users, color: 'text-[#5A5A40]', onClick: () => onNavigate?.('voter-list') },
+    { label: 'Predicted Votes', value: stats.predictedVotes, icon: TrendingUp, color: 'text-purple-600', subtext: `${stats.confidenceLevel}% confidence`, onClick: () => onNavigate?.('voter-list', 'support') },
     { label: 'Verified', value: stats.verified, icon: UserCheck, color: 'text-green-600', onClick: () => onNavigate?.('voter-list', 'verified') },
-    { label: 'Pending Tasks', value: tasks.filter(t => t.status === 'pending').length, icon: ListTodo, color: 'text-amber-600', onClick: () => onNavigate?.('tasks') },
-    { label: 'Avg Support', value: stats.avgSupport > 0 ? stats.avgSupport.toFixed(1) : '—', icon: TrendingUp, color: 'text-blue-600', onClick: () => onNavigate?.('voter-list', 'support') },
+    { label: 'Avg Support', value: stats.avgSupport > 0 ? stats.avgSupport.toFixed(1) : '—', icon: Activity, color: 'text-blue-600', subtext: `${stats.ratedCount} rated`, onClick: () => onNavigate?.('voter-list', 'support') },
   ];
 
   return (
@@ -83,12 +127,68 @@ export default function Dashboard({ voters, tasks = [], onNavigate }: DashboardP
             </div>
             <p className="text-[9px] md:text-[10px] uppercase tracking-widest font-bold text-[#5A5A40]/40 mb-1">{card.label}</p>
             <h3 className="text-xl md:text-3xl font-sans font-bold text-[#1a1a1a]">{card.value}</h3>
+            {card.subtext && (
+              <p className="text-[9px] md:text-[10px] text-[#5A5A40]/60 mt-1 font-medium">{card.subtext}</p>
+            )}
           </div>
         ))}
       </div>
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8">
+        {/* Prediction Breakdown */}
+        <div className="bg-white p-4 md:p-10 rounded-[24px] md:rounded-[40px] border border-black/5 shadow-sm">
+          <h3 className="text-base md:text-xl font-sans font-semibold mb-4 md:mb-8 flex items-center gap-3">
+            <span className="w-2 h-2 rounded-full bg-purple-600"></span>
+            Vote Prediction Analysis
+          </h3>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-transparent rounded-2xl">
+              <div>
+                <p className="text-xs uppercase tracking-widest font-bold text-[#5A5A40]/40">Predicted Votes</p>
+                <p className="text-3xl font-sans font-bold text-purple-600">{stats.predictedVotes}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs uppercase tracking-widest font-bold text-[#5A5A40]/40">Out of</p>
+                <p className="text-2xl font-sans font-bold text-[#5A5A40]">{stats.total}</p>
+              </div>
+            </div>
+            
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-[#5A5A40]/60">Confidence Level</span>
+                <span className="text-sm font-bold text-[#5A5A40]">{stats.confidenceLevel}%</span>
+              </div>
+              <div className="w-full bg-[#f5f5f0] rounded-full h-3 overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-purple-500 to-purple-600 rounded-full transition-all duration-500"
+                  style={{ width: `${stats.confidenceLevel}%` }}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 pt-4">
+              <div className="p-3 bg-[#f5f5f0] rounded-xl">
+                <p className="text-[9px] uppercase tracking-widest font-bold text-[#5A5A40]/40 mb-1">Rated Voters</p>
+                <p className="text-lg font-sans font-bold text-[#5A5A40]">{stats.ratedCount}</p>
+                <p className="text-[9px] text-[#5A5A40]/60">{stats.total > 0 ? Math.round((stats.ratedCount / stats.total) * 100) : 0}% of total</p>
+              </div>
+              <div className="p-3 bg-[#f5f5f0] rounded-xl">
+                <p className="text-[9px] uppercase tracking-widest font-bold text-[#5A5A40]/40 mb-1">Win Probability</p>
+                <p className="text-lg font-sans font-bold text-[#5A5A40]">{stats.total > 0 ? Math.round((stats.predictedVotes / stats.total) * 100) : 0}%</p>
+                <p className="text-[9px] text-[#5A5A40]/60">Expected turnout</p>
+              </div>
+            </div>
+
+            <div className="mt-4 p-3 bg-blue-50 rounded-xl border border-blue-100">
+              <p className="text-[10px] text-blue-600 leading-relaxed">
+                <strong>Prediction Logic:</strong> Based on support ratings (5★=95%, 4★=75%, 3★=50%, 2★=25%, 1★=5%), 
+                verification status (+10% boost), and unrated voters (50% if verified, 30% if not).
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Age Distribution */}
         <div className="bg-white p-4 md:p-10 rounded-[24px] md:rounded-[40px] border border-black/5 shadow-sm">
           <h3 className="text-base md:text-xl font-sans font-semibold mb-4 md:mb-8 flex items-center gap-3">
