@@ -287,22 +287,22 @@ export default function HouseDetail({ house, allHouses, voters, boothId, onBack,
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
           {house.phone && (
-            <div className="flex items-center gap-3 px-4 py-3 bg-[#f5f5f0] rounded-2xl">
+            <a href={`tel:${house.phone}`} className="flex items-center gap-3 px-4 py-3 bg-[#f5f5f0] rounded-2xl hover:bg-[#5A5A40]/10 transition-colors cursor-pointer">
               <Phone className="w-4 h-4 text-[#5A5A40]/50" />
               <div>
                 <p className="text-[9px] uppercase tracking-widest font-bold text-[#5A5A40]/40">Phone</p>
                 <p className="text-sm font-sans text-[#1a1a1a]">{house.phone}</p>
               </div>
-            </div>
+            </a>
           )}
           {house.secondaryPhone && (
-            <div className="flex items-center gap-3 px-4 py-3 bg-[#f5f5f0] rounded-2xl">
+            <a href={`tel:${house.secondaryPhone}`} className="flex items-center gap-3 px-4 py-3 bg-[#f5f5f0] rounded-2xl hover:bg-[#5A5A40]/10 transition-colors cursor-pointer">
               <Phone className="w-4 h-4 text-[#5A5A40]/30" />
               <div>
                 <p className="text-[9px] uppercase tracking-widest font-bold text-[#5A5A40]/40">Secondary</p>
                 <p className="text-sm font-sans text-[#1a1a1a]">{house.secondaryPhone}</p>
               </div>
-            </div>
+            </a>
           )}
           {mainVoter && (
             <div className="flex items-center gap-3 px-4 py-3 bg-[#5A5A40]/5 rounded-2xl sm:col-span-2">

@@ -181,7 +181,15 @@ export default function Houses({ boothId, voters }: HousesProps) {
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  {(house.phone) && <span className="text-xs text-[#5A5A40]/50">{house.phone}</span>}
+                  {(house.phone) && (
+                    <a 
+                      href={`tel:${house.phone}`} 
+                      onClick={(e) => e.stopPropagation()}
+                      className="text-xs text-[#5A5A40]/50 hover:text-[#5A5A40] hover:underline transition-colors"
+                    >
+                      {house.phone}
+                    </a>
+                  )}
                   <div className="flex items-center gap-1 px-2.5 py-1 bg-[#f5f5f0] rounded-full">
                     {members.length === 0
                       ? <span className="text-xs font-bold text-[#5A5A40]/40">No Voters</span>
