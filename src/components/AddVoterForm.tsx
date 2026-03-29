@@ -212,7 +212,6 @@ export default function AddVoterForm({ boothId, onSuccess, compact, preselectedH
         <label className={labelClasses}>Full Name</label>
         <input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} onKeyDown={handleKeyDown} className={inputClasses} placeholder="Enter full name" />
       </div>
-      {houseField}
       <div className="grid grid-cols-3 gap-6">
         <div>
           <label className={labelClasses}>Relation</label>
@@ -228,6 +227,7 @@ export default function AddVoterForm({ boothId, onSuccess, compact, preselectedH
           <input type="text" value={formData.guardianName} onChange={e => setFormData({...formData, guardianName: e.target.value})} onKeyDown={handleKeyDown} className={inputClasses} placeholder="Name" />
         </div>
       </div>
+      {houseField}
       <div className="grid grid-cols-3 gap-6">
         <div>
           <label className={labelClasses}>Age</label>
