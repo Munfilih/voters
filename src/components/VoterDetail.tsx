@@ -32,7 +32,7 @@ export default function VoterDetail({ voter, voters, houses, onBack, onUpdated }
     age: String(voter.age),
     gender: voter.gender,
     voterId: voter.voterId,
-    address: voter.address,
+    address: voter.address || '',
     isVerified: voter.isVerified || false,
     supportRating: voter.supportRating || 0,
     serialNumber: voter.serialNumber ? String(voter.serialNumber) : '',
@@ -106,6 +106,7 @@ export default function VoterDetail({ voter, voters, houses, onBack, onUpdated }
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    setShowHouseDropdown(false);
     if (!auth.currentUser) return;
     setSaving(true);
     try {
@@ -190,6 +191,7 @@ export default function VoterDetail({ voter, voters, houses, onBack, onUpdated }
                     value={houseSearch}
                     onChange={e => { setHouseSearch(e.target.value); setSelectedHouseNumber(''); setShowHouseDropdown(true); }}
                     onFocus={() => setShowHouseDropdown(true)}
+                    onBlur={() => setTimeout(() => setShowHouseDropdown(false), 150)}
                     className={`${inputClasses} pl-14`}
                   />
                   {showHouseDropdown && (
