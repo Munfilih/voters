@@ -112,22 +112,30 @@ export default function VoterDetail({ voter, voters, houses, onBack, onUpdated }
     try {
       const houseChanged = selectedHouseNumber !== voter.houseNumber;
       const birthYear = calculateBirthYear(form.age);
-      const updated: Voter = {
-        ...voter,
+      const updated: any = {
+        id: voter.id,
+        boothId: voter.boothId,
+        ownerId: voter.ownerId,
+        createdAt: voter.createdAt,
         name: form.name,
         age: parseInt(form.age),
-        birthYear: birthYear || voter.birthYear,
-        gender: form.gender as Voter['gender'],
+        gender: form.gender,
         voterId: form.voterId,
         address: form.address,
         houseNumber: selectedHouseNumber,
         isVerified: form.isVerified,
         supportRating: form.supportRating,
-        serialNumber: form.serialNumber ? parseInt(form.serialNumber) : voter.serialNumber,
-        guardianName: form.guardianName || voter.guardianName,
         guardianRelation: form.guardianRelation || voter.guardianRelation,
-        phone: form.phone || undefined,
       };
+      if (birthYear) updated.birthYear = birthYear;
+      else if (voter.birthYear) updated.birthYear = voter.birthYear;
+      if (form.serialNumber) updated.serialNumber = parseInt(form.serialNumber);
+      else if (voter.serialNumber) updated.serialNumber = voter.serialNumber;
+      if (form.guardianName) updated.guardianName = form.guardianName;
+      else if (voter.guardianName) updated.guardianName = voter.guardianName;
+      if (form.phone) updated.phone = form.phone;
+      if (voter.photoURL) updated.photoURL = voter.photoURL;
+      if (voter.nameMl) updated.nameMl = voter.nameMl;
       await setDoc(doc(db, 'voters', voter.id), updated);
 
       if (houseChanged) {
