@@ -5,7 +5,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
   PieChart, Pie, Cell, Legend, AreaChart, Area 
 } from 'recharts';
-import { Users, UserCheck, TrendingUp, Activity, CheckCircle2, Star } from 'lucide-react';
+import { Users, UserCheck, TrendingUp, Activity, CheckCircle2, Star, ListTodo } from 'lucide-react';
 
 interface DashboardProps {
   voters: Voter[];
@@ -19,7 +19,6 @@ export default function Dashboard({ voters, tasks = [], onNavigate }: DashboardP
   const stats = useMemo(() => {
     const total = voters.length;
     const verified = voters.filter(v => v.isVerified).length;
-    const removed = voters.filter(v => v.isRemoved);
     const pending = total - verified;
     const male = voters.filter(v => v.gender === 'Male').length;
     const female = voters.filter(v => v.gender === 'Female').length;
@@ -58,7 +57,6 @@ export default function Dashboard({ voters, tasks = [], onNavigate }: DashboardP
       supportRatings, 
       avgSupport,
       ratedCount: ratedVoters.length,
-      removed,
     };
   }, [voters]);
 
@@ -66,6 +64,7 @@ export default function Dashboard({ voters, tasks = [], onNavigate }: DashboardP
     { label: 'Total Voters', value: stats.total, icon: Users, color: 'text-[#5A5A40]', onClick: () => onNavigate?.('voter-list') },
     { label: 'Verified', value: stats.verified, icon: UserCheck, color: 'text-green-600', onClick: () => onNavigate?.('voter-list', 'verified') },
     { label: 'Avg Support', value: stats.avgSupport > 0 ? stats.avgSupport.toFixed(1) : '—', icon: Activity, color: 'text-blue-600', subtext: `${stats.ratedCount} rated`, onClick: () => onNavigate?.('voter-list', 'support') },
+    { label: 'Pending Tasks', value: tasks.filter(t => t.status === 'pending').length, icon: ListTodo, color: 'text-amber-600', subtext: `${tasks.length} total`, onClick: () => onNavigate?.('tasks') },
   ];
 
   const [serialInput, setSerialInput] = useState('');
@@ -286,27 +285,6 @@ export default function Dashboard({ voters, tasks = [], onNavigate }: DashboardP
           </div>
         )}
       </div>
-
-      {/* Removed Voters */}
-      {stats.removed.length > 0 && (
-        <div className="bg-white rounded-[32px] p-6 md:p-10 border border-black/5 shadow-sm">
-          <h3 className="text-base md:text-xl font-sans font-semibold mb-5 flex items-center gap-3">
-            <span className="w-2 h-2 rounded-full bg-red-500"></span>
-            Removed Voters <span className="text-sm font-normal text-[#5A5A40]/40 ml-1">({stats.removed.length})</span>
-          </h3>
-          <div className="bg-white rounded-2xl border border-black/5 overflow-hidden">
-            {stats.removed.map((v, i) => (
-              <div key={v.id} className={`flex items-center justify-between px-6 py-4 ${i > 0 ? 'border-t border-black/5' : ''}`}>
-                <div>
-                  <p className="font-sans font-medium text-[#1a1a1a] uppercase line-through opacity-50">{v.name}</p>
-                  <p className="text-[10px] uppercase tracking-widest font-bold text-[#5A5A40]/30">{v.voterId} · {v.gender} · {v.age}</p>
-                </div>
-                <span className="text-[10px] font-bold uppercase tracking-widest text-red-400 bg-red-50 px-3 py-1 rounded-full">Removed</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
