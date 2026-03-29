@@ -161,12 +161,12 @@ export default function Houses({ boothId, voters }: HousesProps) {
               >
                 <div>
                   <div className="flex items-center gap-2">
-                    <p className="font-sans font-semibold text-[#1a1a1a]">{house.houseNumber}</p>
+                    <p className="font-sans font-semibold text-[#1a1a1a] uppercase">{house.houseNumber.toUpperCase()}</p>
                     {displayVoter && <span className="text-[#5A5A40]/60">·</span>}
-                    {displayVoter && <p className="font-sans font-medium text-[#5A5A40]">{displayVoter.name}</p>}
+                    {displayVoter && <p className="font-sans font-medium text-[#5A5A40] uppercase">{displayVoter.name}</p>}
                   </div>
                   <div className="flex items-center gap-2">
-                    <p className="text-[10px] uppercase tracking-widest font-bold text-[#5A5A40]/40">{house.name}</p>
+                    <p className="text-[10px] uppercase tracking-widest font-bold text-[#5A5A40]/40">{house.name.toUpperCase()}</p>
                     {avgRating > 0 && (
                       <div className="flex items-center gap-0.5">
                         {[1, 2, 3, 4, 5].map(star => (
@@ -221,11 +221,11 @@ export default function Houses({ boothId, voters }: HousesProps) {
             <form onSubmit={handleSubmit} className="space-y-3.5 overflow-y-auto flex-1 pr-2">
               <div>
                 <label className={labelClasses}>House Number</label>
-                <input required type="text" value={form.houseNumber} onChange={e => setForm({ ...form, houseNumber: e.target.value })} onKeyDown={handleKeyDown} className={inputClasses} placeholder="e.g. H-123" />
+                <input required type="text" value={form.houseNumber} onChange={e => setForm({ ...form, houseNumber: e.target.value.toUpperCase() })} onKeyDown={handleKeyDown} className={`${inputClasses} uppercase`} placeholder="e.g. H-123" />
               </div>
               <div>
                 <label className={labelClasses}>House Name</label>
-                <input required type="text" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} onKeyDown={handleKeyDown} className={inputClasses} placeholder="e.g. Smith Residence" />
+                <input required type="text" value={form.name} onChange={e => setForm({ ...form, name: e.target.value.toUpperCase() })} onKeyDown={handleKeyDown} className={`${inputClasses} uppercase`} placeholder="e.g. SMITH RESIDENCE" />
               </div>
               <div>
                 <label className={labelClasses}>Road / Street</label>

@@ -97,7 +97,7 @@ export default function VoterList({ voters, houses, boothId }: VoterListProps) {
                     {v.serialNumber && (
                       <span className="inline-flex items-center justify-center w-6 h-6 rounded-md bg-[#5A5A40]/10 text-[8px] font-bold text-[#5A5A40] shrink-0">{v.serialNumber}</span>
                     )}
-                    <p className="font-sans font-semibold text-[#1a1a1a] text-sm md:text-base truncate">{v.name}</p>
+                    <p className="font-sans font-semibold text-[#1a1a1a] text-sm md:text-base truncate uppercase">{v.name}</p>
                   </div>
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="text-[9px] md:text-[10px] uppercase tracking-widest font-bold text-[#5A5A40]/40">{v.voterId} · {v.gender} · {v.age}</p>
@@ -112,7 +112,7 @@ export default function VoterList({ voters, houses, boothId }: VoterListProps) {
                 </div>
                 <div className="flex items-center gap-2 md:gap-3 shrink-0">
                   {(houseName || v.houseNumber) && (
-                    <span className="text-xs text-[#5A5A40]/40 hidden sm:inline">{houseName || v.houseNumber}</span>
+                    <span className="text-xs text-[#5A5A40]/40 hidden sm:inline uppercase">{houseName || v.houseNumber}</span>
                   )}
                   {v.isVerified && <CheckCircle2 className="w-4 h-4 text-green-500" />}
                   <ChevronRight className="w-4 h-4 text-[#5A5A40]/30" />

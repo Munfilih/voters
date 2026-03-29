@@ -209,8 +209,8 @@ export default function HouseDetail({ house, allHouses, voters, boothId, onBack,
           <ArrowLeft className="w-5 h-5 text-[#5A5A40]" />
         </button>
         <div className="flex-1">
-          <h2 className="text-3xl font-sans font-semibold text-[#1a1a1a]">{house.name}</h2>
-          <p className="text-[#5A5A40]/50 text-sm">House No. {house.houseNumber}</p>
+          <h2 className="text-3xl font-sans font-semibold text-[#1a1a1a] uppercase">{house.name.toUpperCase()}</h2>
+          <p className="text-[#5A5A40]/50 text-sm uppercase">House No. {house.houseNumber.toUpperCase()}</p>
           <div className="flex items-center gap-3 mt-3">
             <button
               onClick={() => setShowDeleteConfirm(true)}
@@ -243,8 +243,8 @@ export default function HouseDetail({ house, allHouses, voters, boothId, onBack,
             </div>
           </div>
           <div>
-            <p className="font-sans font-semibold text-[#1a1a1a] text-lg">{house.name}</p>
-            <p className="text-xs text-[#5A5A40]/40 uppercase tracking-widest">No. {house.houseNumber}</p>
+            <p className="font-sans font-semibold text-[#1a1a1a] text-lg uppercase">{house.name.toUpperCase()}</p>
+            <p className="text-xs text-[#5A5A40]/40 uppercase tracking-widest">No. {house.houseNumber.toUpperCase()}</p>
           </div>
         </div>
 
@@ -304,7 +304,7 @@ export default function HouseDetail({ house, allHouses, voters, boothId, onBack,
             {members.map((v, i) => (
               <div key={v.id} onClick={() => setSelectedVoter(v)} className={`flex items-center justify-between px-8 py-5 cursor-pointer hover:bg-[#f5f5f0] transition-all ${i > 0 ? 'border-t border-black/5' : ''}`}>
                 <div>
-                  <p className="font-sans font-medium text-[#1a1a1a]">{v.name}</p>
+                  <p className="font-sans font-medium text-[#1a1a1a] uppercase">{v.name}</p>
                   <p className="text-[10px] uppercase tracking-widest font-bold text-[#5A5A40]/40">{v.voterId}</p>
                 </div>
                 <div className="flex items-center gap-3">
@@ -400,11 +400,11 @@ export default function HouseDetail({ house, allHouses, voters, boothId, onBack,
             <form onSubmit={handleEditSave} className="space-y-3.5 overflow-y-auto flex-1 pr-2">
               <div>
                 <label className={labelClasses}>House Name</label>
-                <input required type="text" value={editForm.name} onChange={e => setEditForm({ ...editForm, name: e.target.value })} onKeyDown={handleKeyDown} className={inputClasses} />
+                <input required type="text" value={editForm.name} onChange={e => setEditForm({ ...editForm, name: e.target.value.toUpperCase() })} onKeyDown={handleKeyDown} className={`${inputClasses} uppercase`} />
               </div>
               <div>
                 <label className={labelClasses}>House Number</label>
-                <input required type="text" value={editForm.houseNumber} onChange={e => setEditForm({ ...editForm, houseNumber: e.target.value })} onKeyDown={handleKeyDown} className={inputClasses} />
+                <input required type="text" value={editForm.houseNumber} onChange={e => setEditForm({ ...editForm, houseNumber: e.target.value.toUpperCase() })} onKeyDown={handleKeyDown} className={`${inputClasses} uppercase`} />
               </div>
               <div>
                 <label className={labelClasses}>Road / Street</label>

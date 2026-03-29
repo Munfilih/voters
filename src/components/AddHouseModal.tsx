@@ -68,11 +68,11 @@ export default function AddHouseModal({ boothId, onClose, onCreated }: AddHouseM
         <form onSubmit={handleSubmit} className="space-y-3.5">
           <div>
             <label className={labelClasses}>House Number</label>
-            <input required type="text" value={form.houseNumber} onChange={e => setForm({ ...form, houseNumber: e.target.value })} onKeyDown={handleKeyDown} className={inputClasses} placeholder="e.g. H-123" />
+            <input required type="text" value={form.houseNumber} onChange={e => setForm({ ...form, houseNumber: e.target.value.toUpperCase() })} onKeyDown={handleKeyDown} className={`${inputClasses} uppercase`} placeholder="e.g. H-123" />
           </div>
           <div>
             <label className={labelClasses}>House Name</label>
-            <input required type="text" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} onKeyDown={handleKeyDown} className={inputClasses} placeholder="e.g. Smith Residence" />
+            <input required type="text" value={form.name} onChange={e => setForm({ ...form, name: e.target.value.toUpperCase() })} onKeyDown={handleKeyDown} className={`${inputClasses} uppercase`} placeholder="e.g. SMITH RESIDENCE" />
           </div>
           <div>
             <label className={labelClasses}>Road / Street</label>
