@@ -1,21 +1,22 @@
 import React, { useMemo, useState } from 'react';
-import { Voter, Task, View } from '../types';
+import { Voter, Task, House, View } from '../types';
 import { cn } from '../lib/utils';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
   PieChart, Pie, Cell, Legend, AreaChart, Area 
 } from 'recharts';
-import { Users, UserCheck, TrendingUp, Activity, CheckCircle2, Star, ListTodo } from 'lucide-react';
+import { Users, UserCheck, TrendingUp, Activity, CheckCircle2, Star, ListTodo, Building2 } from 'lucide-react';
 
 interface DashboardProps {
   voters: Voter[];
+  houses?: House[];
   tasks?: Task[];
   onNavigate?: (view: View, filter?: string) => void;
 }
 
 const COLORS = ['#5A5A40', '#8E8E6E', '#C2C2A3', '#E6E6D1'];
 
-export default function Dashboard({ voters, tasks = [], onNavigate }: DashboardProps) {
+export default function Dashboard({ voters, houses = [], tasks = [], onNavigate }: DashboardProps) {
   const stats = useMemo(() => {
     const total = voters.length;
     const verified = voters.filter(v => v.isVerified).length;
@@ -62,7 +63,7 @@ export default function Dashboard({ voters, tasks = [], onNavigate }: DashboardP
 
   const cards = [
     { label: 'Total Voters', value: stats.total, icon: Users, color: 'text-[#5A5A40]', onClick: () => onNavigate?.('voter-list') },
-    { label: 'Verified', value: stats.verified, icon: UserCheck, color: 'text-green-600', onClick: () => onNavigate?.('voter-list', 'verified') },
+    { label: 'Total Houses', value: houses.length, icon: Building2, color: 'text-orange-600', onClick: () => onNavigate?.('houses') },
     { label: 'Avg Support', value: stats.avgSupport > 0 ? stats.avgSupport.toFixed(1) : '—', icon: Activity, color: 'text-blue-600', subtext: `${stats.ratedCount} rated`, onClick: () => onNavigate?.('voter-list', 'support') },
     { label: 'Pending Tasks', value: tasks.filter(t => t.status === 'pending').length, icon: ListTodo, color: 'text-amber-600', subtext: `${tasks.length} total`, onClick: () => onNavigate?.('tasks') },
   ];
