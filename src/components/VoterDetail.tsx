@@ -41,6 +41,12 @@ export default function VoterDetail({ voter, voters, houses, onBack, onUpdated }
     phone: voter.phone || '',
   });
 
+  const handleVoterIdChange = (value: string) => {
+    const letters = value.slice(0, 3).replace(/[^a-zA-Z]/g, '').toUpperCase();
+    const numbers = value.slice(3).replace(/[^0-9]/g, '');
+    return letters + numbers;
+  };
+
   const [showPhoto, setShowPhoto] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -233,7 +239,15 @@ export default function VoterDetail({ voter, voters, houses, onBack, onUpdated }
 
             <div>
               <label className={labelClasses}>Voter ID Number</label>
-              <input type="text" value={form.voterId} onChange={e => setForm({ ...form, voterId: e.target.value })} className={inputClasses} placeholder="e.g. ABC1234567" />
+              <input
+                type="text"
+                value={form.voterId}
+                onChange={e => setForm({ ...form, voterId: handleVoterIdChange(e.target.value) })}
+                inputMode={form.voterId.length >= 3 ? 'numeric' : 'text'}
+                className={inputClasses}
+                placeholder="e.g. ABC1234567"
+                maxLength={10}
+              />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

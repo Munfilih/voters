@@ -110,7 +110,11 @@ export default function AddVoterForm({ boothId, onSuccess, compact, preselectedH
     setFormData(prev => ({ ...prev, houseNumber: house.houseNumber, houseName: house.name }));
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleVoterIdChange = (value: string) => {
+    const letters = value.slice(0, 3).replace(/[^a-zA-Z]/g, '').toUpperCase();
+    const numbers = value.slice(3).replace(/[^0-9]/g, '');
+    return letters + numbers;
+  };
     if (e.key === 'Enter') {
       e.preventDefault();
       const form = e.currentTarget.form;
@@ -177,7 +181,16 @@ export default function AddVoterForm({ boothId, onSuccess, compact, preselectedH
         </div>
         <div>
           <label className={labelClasses}>Voter ID</label>
-          <input type="text" value={formData.voterId} onChange={e => setFormData({...formData, voterId: e.target.value})} onKeyDown={handleKeyDown} className={inputClasses} placeholder="ABC1234567" />
+          <input
+            type="text"
+            value={formData.voterId}
+            onChange={e => setFormData({...formData, voterId: handleVoterIdChange(e.target.value)})}
+            onKeyDown={handleKeyDown}
+            inputMode={formData.voterId.length >= 3 ? 'numeric' : 'text'}
+            className={inputClasses}
+            placeholder="ABC1234567"
+            maxLength={10}
+          />
         </div>
       </div>
       <div>
