@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { ArrowLeft, Building2, Phone, Star, Pencil, Plus, X, Users, CheckCircle2, ChevronRight, Trash2, ListTodo, Check } from 'lucide-react';
+import { ArrowLeft, Building2, Phone, Star, Pencil, Plus, X, Users, CheckCircle2, ChevronRight, Trash2, ListTodo } from 'lucide-react';
 import { auth, db, doc, setDoc, collection, deleteDoc, onSnapshot, query, where } from '../firebase';
 import { House, Voter, Task } from '../types';
 import VoterDetail from './VoterDetail';
 import PhotoModal from './PhotoModal';
+import AddVoterForm from './AddVoterForm';
 
 interface HouseDetailProps {
   house: House;
@@ -15,8 +16,8 @@ interface HouseDetailProps {
   onHouseUpdated: (updated: House) => void;
 }
 
-const inputClasses = 'w-full px-3 py-2 bg-[#f5f5f0] rounded-xl border border-transparent focus:border-[#5A5A40]/30 focus:outline-none focus:ring-0 font-sans text-sm transition-colors';
-const labelClasses = 'block text-[10px] uppercase tracking-wider font-bold text-[#5A5A40]/60 mb-1.5';
+const inputClasses = 'w-full px-6 py-4 bg-[#f5f5f0] rounded-2xl border border-transparent focus:border-[#5A5A40]/20 focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#5A5A40]/5 transition-all font-sans';
+const labelClasses = 'block text-[10px] uppercase tracking-[0.2em] font-bold text-[#5A5A40]/50 mb-3 ml-2';
 
 export default function HouseDetail({ house, allHouses, voters, boothId, onBack, onHouseUpdated }: HouseDetailProps) {
   const members = voters.filter(v => v.houseNumber === house.houseNumber);
@@ -89,17 +90,6 @@ export default function HouseDetail({ house, allHouses, voters, boothId, onBack,
   });
 
   const [isAddingVoter, setIsAddingVoter] = useState(false);
-  const [voterSaving, setVoterSaving] = useState(false);
-  const [voterForm, setVoterForm] = useState({
-    name: '', age: '', gender: 'Male', voterId: '', address: '',
-    isVerified: false,
-  });
-
-  const calculateBirthYear = (age: string) => {
-    if (!age) return null;
-    const currentYear = new Date().getFullYear();
-    return currentYear - parseInt(age);
-  };
 
   const handleEditSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -125,45 +115,6 @@ export default function HouseDetail({ house, allHouses, voters, boothId, onBack,
       console.error('Error updating house:', err);
     } finally {
       setEditSaving(false);
-    }
-  };
-
-  const handleAddVoter = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!auth.currentUser) return;
-    setVoterSaving(true);
-    try {
-      const ref = doc(collection(db, 'voters'));
-      const birthYear = calculateBirthYear(voterForm.age);
-      await setDoc(ref, {
-        id: ref.id,
-        boothId,
-        ownerId: auth.currentUser.uid,
-        name: voterForm.name,
-        age: parseInt(voterForm.age),
-        birthYear: birthYear,
-        gender: voterForm.gender,
-        voterId: voterForm.voterId,
-        address: voterForm.address || house.name,
-        houseNumber: house.houseNumber,
-        isVerified: voterForm.isVerified,
-        createdAt: new Date().toISOString(),
-      });
-
-      // If this is the only voter in the house, set as main voter
-      if (members.length === 0) {
-        await setDoc(doc(db, 'houses', house.id), {
-          ...house,
-          mainVoterId: ref.id
-        });
-      }
-
-      setVoterForm({ name: '', age: '', gender: 'Male', voterId: '', address: '', isVerified: false });
-      setIsAddingVoter(false);
-    } catch (err) {
-      console.error('Error adding voter:', err);
-    } finally {
-      setVoterSaving(false);
     }
   };
 
@@ -227,6 +178,16 @@ export default function HouseDetail({ house, allHouses, voters, boothId, onBack,
       console.error('Error deleting task:', err);
     }
   };
+
+  if (isAddingVoter) {
+    return (
+      <AddVoterForm
+        boothId={boothId}
+        onSuccess={() => setIsAddingVoter(false)}
+        preselectedHouse={house}
+      />
+    );
+  }
 
   if (selectedVoter) {
     return (
@@ -473,61 +434,6 @@ export default function HouseDetail({ house, allHouses, voters, boothId, onBack,
                 {editSaving ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : 'Save'}
               </button>
             </div>
-          </motion.div>
-        </div>
-      )}
-
-      {/* Add Voter Modal */}
-      {isAddingVoter && (
-        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-white rounded-3xl p-8 max-w-lg w-full shadow-2xl max-h-[90vh] overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-sans font-semibold">Add Voter</h3>
-              <button onClick={() => setIsAddingVoter(false)} className="p-1.5 rounded-full hover:bg-[#f5f5f0]"><X className="w-5 h-5 text-[#5A5A40]/40" /></button>
-            </div>
-            <form onSubmit={handleAddVoter} className="space-y-3.5 overflow-y-auto flex-1 pr-2">
-              <div>
-                <label className={labelClasses}>Full Name</label>
-                <input required type="text" value={voterForm.name} onChange={e => setVoterForm({ ...voterForm, name: e.target.value })} onKeyDown={handleKeyDown} className={inputClasses} placeholder="Full name" />
-              </div>
-              <div className="grid grid-cols-3 gap-2">
-                <div>
-                  <label className={labelClasses}>Age</label>
-                  <input required type="number" min="18" max="120" value={voterForm.age} onChange={e => setVoterForm({ ...voterForm, age: e.target.value })} onKeyDown={handleKeyDown} className={inputClasses} placeholder="25" />
-                </div>
-                <div>
-                  <label className={labelClasses}>Birth Year</label>
-                  <input type="number" value={calculateBirthYear(voterForm.age) || ''} readOnly className={`${inputClasses} bg-[#e8e8e0] cursor-not-allowed`} placeholder="Auto" />
-                </div>
-                <div>
-                  <label className={labelClasses}>Gender</label>
-                  <select value={voterForm.gender} onChange={e => setVoterForm({ ...voterForm, gender: e.target.value })} onKeyDown={handleKeyDown} className={inputClasses}>
-                    <option>Male</option><option>Female</option><option>Other</option>
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label className={labelClasses}>Voter ID</label>
-                <input type="text" value={voterForm.voterId} onChange={e => setVoterForm({ ...voterForm, voterId: e.target.value })} onKeyDown={handleKeyDown} className={inputClasses} placeholder="ABC1234567" />
-              </div>
-              <div>
-                <label className={labelClasses}>Address</label>
-                <input type="text" value={voterForm.address} onChange={e => setVoterForm({ ...voterForm, address: e.target.value })} onKeyDown={handleKeyDown} className={inputClasses} placeholder={house.name} />
-              </div>
-              <div className="flex items-center gap-3">
-                <button type="button" onClick={() => setVoterForm({ ...voterForm, isVerified: !voterForm.isVerified })} className={`w-11 h-6 rounded-full transition-all relative ${voterForm.isVerified ? 'bg-[#5A5A40]' : 'bg-[#f5f5f0]'}`}>
-                  <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-all ${voterForm.isVerified ? 'left-5' : 'left-0.5'}`} />
-                </button>
-                <span className="text-sm font-medium text-[#1a1a1a]">Verified</span>
-              </div>
-
-              <div className="flex gap-3 pt-4 mt-4 border-t border-black/5 sticky bottom-0 bg-white">
-                <button type="button" onClick={() => setIsAddingVoter(false)} className="flex-1 py-2.5 px-4 rounded-full border border-[#5A5A40]/20 text-[#5A5A40] font-sans text-sm hover:bg-[#f5f5f0] transition-colors">Cancel</button>
-                <button type="submit" disabled={voterSaving} className="flex-1 py-2.5 px-4 rounded-full bg-[#5A5A40] text-white font-sans text-sm hover:bg-[#4a4a30] transition-colors shadow-lg disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2">
-                  {voterSaving ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : 'Add Voter'}
-                </button>
-              </div>
-            </form>
           </motion.div>
         </div>
       )}

@@ -222,7 +222,7 @@ export default function App() {
             transition={{ duration: 0.2 }}
           >
             {currentView === 'dashboard' && <Dashboard voters={voters} tasks={tasks} onNavigate={(view) => setCurrentView(view)} />}
-            {currentView === 'voter-list' && <VoterList voters={voters} houses={houses} boothId={currentBooth.id} />}
+            {currentView === 'voter-list' && <VoterList voters={voters} houses={houses} boothId={currentBooth.id} onAddVoter={() => setCurrentView('add-voter')} />}
             {currentView === 'houses' && <Houses boothId={currentBooth.id} voters={voters} />}
             {currentView === 'tasks' && <TasksList boothId={currentBooth.id} onBack={() => setCurrentView('dashboard')} />}
             {currentView === 'add-voter' && (

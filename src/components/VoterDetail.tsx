@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Pencil, CheckCircle2, User, Search, Star, Trash2 } from 'lucide-react';
+import { ArrowLeft, Pencil, CheckCircle2, User, Search, Star, Trash2, Plus } from 'lucide-react';
 import { auth, db, doc, setDoc, deleteDoc } from '../firebase';
 import { Voter, House } from '../types';
 import PhotoModal from './PhotoModal';
 import { motion } from 'motion/react';
+import AddHouseModal from './AddHouseModal';
 
 interface VoterDetailProps {
   voter: Voter;
@@ -19,6 +20,8 @@ const labelClasses = 'block text-[10px] uppercase tracking-[0.2em] font-bold tex
 export default function VoterDetail({ voter, voters, houses, onBack, onUpdated }: VoterDetailProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [showHouseDropdown, setShowHouseDropdown] = useState(false);
+  const [showAddHouseModal, setShowAddHouseModal] = useState(false);
   const [houseSearch, setHouseSearch] = useState(() => {
     const h = houses.find(h => h.houseNumber === voter.houseNumber);
     return h ? `${h.houseNumber} · ${h.name}` : voter.houseNumber || '';
@@ -30,36 +33,32 @@ export default function VoterDetail({ voter, voters, houses, onBack, onUpdated }
     gender: voter.gender,
     voterId: voter.voterId,
     address: voter.address,
-    houseNumber: voter.houseNumber || '',
     isVerified: voter.isVerified || false,
     supportRating: voter.supportRating || 0,
+    serialNumber: voter.serialNumber ? String(voter.serialNumber) : '',
+    guardianName: voter.guardianName || '',
+    guardianRelation: voter.guardianRelation || 'Father',
+    phone: voter.phone || '',
   });
-
-  const calculateBirthYear = (age: string) => {
-    if (!age) return null;
-    const currentYear = new Date().getFullYear();
-    return currentYear - parseInt(age);
-  };
-
-  const calculateAge = (birthYear: number) => {
-    const currentYear = new Date().getFullYear();
-    return currentYear - birthYear;
-  };
-
-  // Auto-update age based on birth year
-  React.useEffect(() => {
-    if (voter.birthYear) {
-      const updatedAge = calculateAge(voter.birthYear);
-      if (updatedAge !== voter.age) {
-        setDoc(doc(db, 'voters', voter.id), { ...voter, age: updatedAge });
-      }
-    }
-  }, []);
 
   const [showPhoto, setShowPhoto] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  const calculateBirthYear = (age: string) => {
+    if (!age) return null;
+    return new Date().getFullYear() - parseInt(age);
+  };
+
+  React.useEffect(() => {
+    if (voter.birthYear) {
+      const updatedAge = new Date().getFullYear() - voter.birthYear;
+      if (updatedAge !== voter.age) {
+        setDoc(doc(db, 'voters', voter.id), { ...voter, age: updatedAge });
+      }
+    }
+  }, []);
 
   const handlePhotoUpload = async (file: File) => {
     setUploadingPhoto(true);
@@ -94,6 +93,11 @@ export default function VoterDetail({ voter, voters, houses, onBack, onUpdated }
 
   const houseName = houses.find(h => h.houseNumber === voter.houseNumber)?.name;
 
+  const filteredHouses = houses.filter(h =>
+    h.houseNumber.toLowerCase().includes(houseSearch.toLowerCase()) ||
+    h.name.toLowerCase().includes(houseSearch.toLowerCase())
+  );
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!auth.currentUser) return;
@@ -112,6 +116,10 @@ export default function VoterDetail({ voter, voters, houses, onBack, onUpdated }
         houseNumber: selectedHouseNumber,
         isVerified: form.isVerified,
         supportRating: form.supportRating,
+        serialNumber: form.serialNumber ? parseInt(form.serialNumber) : voter.serialNumber,
+        guardianName: form.guardianName || voter.guardianName,
+        guardianRelation: form.guardianRelation || voter.guardianRelation,
+        phone: form.phone || undefined,
       };
       await setDoc(doc(db, 'voters', voter.id), updated);
 
@@ -137,12 +145,16 @@ export default function VoterDetail({ voter, voters, houses, onBack, onUpdated }
   };
 
   const fields = [
+    { label: 'Serial No.', value: voter.serialNumber ? String(voter.serialNumber) : '—' },
     { label: 'Voter ID', value: voter.voterId || '—' },
     { label: 'Age', value: String(voter.age) },
     { label: 'Birth Year', value: voter.birthYear ? String(voter.birthYear) : '—' },
     { label: 'Gender', value: voter.gender },
     { label: 'House', value: houseName ? `${voter.houseNumber} · ${houseName}` : voter.houseNumber || '—' },
     { label: 'Address', value: voter.address },
+    { label: 'Guardian', value: voter.guardianName ? `${voter.guardianName}${voter.guardianRelation ? ` (${voter.guardianRelation})` : ''}` : '—' },
+    ...(voter.phone ? [{ label: 'Phone', value: voter.phone }] : []),
+    ...(voter.nameMl ? [{ label: 'Name (ML)', value: voter.nameMl }] : []),
     { label: 'Support Rating', value: voter.supportRating && voter.supportRating > 0 ? '★'.repeat(voter.supportRating) + '☆'.repeat(5 - voter.supportRating) : 'Not rated' },
   ];
 
@@ -157,37 +169,43 @@ export default function VoterDetail({ voter, voters, houses, onBack, onUpdated }
         </div>
 
         <form onSubmit={handleSave} className="space-y-8">
-          {/* Personal Details */}
           <section className="bg-white p-8 md:p-12 rounded-[32px] border border-black/5 shadow-sm space-y-6">
             <h3 className="text-xl font-sans font-semibold text-[#1a1a1a]">Personal Details</h3>
 
-            {/* House Search */}
+            {/* House */}
             <div>
               <label className={labelClasses}>House</label>
-              <div className="relative">
-                <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5A5A40]/30" />
-                <input
-                  type="text"
-                  placeholder="Search house..."
-                  value={houseSearch}
-                  onChange={e => { setHouseSearch(e.target.value); setSelectedHouseNumber(''); }}
-                  className={`${inputClasses} pl-14`}
-                />
-                {houseSearch && !selectedHouseNumber && (
-                  <div className="absolute z-10 w-full mt-1 bg-white border border-black/5 rounded-2xl shadow-lg overflow-hidden">
-                    {houses.filter(h =>
-                      h.houseNumber.toLowerCase().includes(houseSearch.toLowerCase()) ||
-                      h.name.toLowerCase().includes(houseSearch.toLowerCase())
-                    ).map(h => (
-                      <button key={h.id} type="button"
-                        onClick={() => { setSelectedHouseNumber(h.houseNumber); setHouseSearch(`${h.houseNumber} · ${h.name}`); }}
-                        className="w-full text-left px-6 py-3 hover:bg-[#f5f5f0] text-sm font-sans border-t border-black/5 first:border-0"
-                      >
-                        <span className="font-semibold">{h.houseNumber}</span> · {h.name}
-                      </button>
-                    ))}
-                  </div>
-                )}
+              <div className="flex gap-3">
+                <div className="relative flex-1">
+                  <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5A5A40]/30" />
+                  <input
+                    type="text"
+                    placeholder="Click to select house..."
+                    value={houseSearch}
+                    onChange={e => { setHouseSearch(e.target.value); setSelectedHouseNumber(''); setShowHouseDropdown(true); }}
+                    onFocus={() => setShowHouseDropdown(true)}
+                    className={`${inputClasses} pl-14`}
+                  />
+                  {showHouseDropdown && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-black/5 rounded-2xl shadow-lg overflow-hidden max-h-48 overflow-y-auto">
+                      {filteredHouses.length === 0 ? (
+                        <p className="px-6 py-3 text-xs text-[#5A5A40]/40">No houses found</p>
+                      ) : (
+                        filteredHouses.map(h => (
+                          <button key={h.id} type="button"
+                            onClick={() => { setSelectedHouseNumber(h.houseNumber); setHouseSearch(`${h.houseNumber} · ${h.name}`); setShowHouseDropdown(false); }}
+                            className="w-full text-left px-6 py-3 hover:bg-[#f5f5f0] text-sm font-sans border-t border-black/5 first:border-0">
+                            <span className="font-semibold">{h.houseNumber}</span> · {h.name}
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  )}
+                </div>
+                <button type="button" onClick={() => setShowAddHouseModal(true)}
+                  className="shrink-0 px-4 py-3 rounded-2xl bg-[#5A5A40] text-white text-xs font-bold hover:bg-[#4a4a30] transition-colors flex items-center gap-1.5">
+                  <Plus className="w-4 h-4" /> New
+                </button>
               </div>
             </div>
 
@@ -217,17 +235,39 @@ export default function VoterDetail({ voter, voters, houses, onBack, onUpdated }
               <label className={labelClasses}>Voter ID Number</label>
               <input type="text" value={form.voterId} onChange={e => setForm({ ...form, voterId: e.target.value })} className={inputClasses} placeholder="e.g. ABC1234567" />
             </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                <label className={labelClasses}>Serial Number</label>
+                <input type="number" min="1" value={form.serialNumber} onChange={e => setForm({ ...form, serialNumber: e.target.value })} className={inputClasses} placeholder="e.g. 1" />
+              </div>
+              <div>
+                <label className={labelClasses}>Relation</label>
+                <select value={form.guardianRelation} onChange={e => setForm({ ...form, guardianRelation: e.target.value })} className={inputClasses}>
+                  <option value="Father">Father</option>
+                  <option value="Mother">Mother</option>
+                  <option value="Husband">Husband</option>
+                  <option value="Wife">Wife</option>
+                </select>
+              </div>
+              <div>
+                <label className={labelClasses}>Guardian Name</label>
+                <input type="text" value={form.guardianName} onChange={e => setForm({ ...form, guardianName: e.target.value })} className={inputClasses} placeholder="Guardian name" />
+              </div>
+            </div>
+
+            <div>
+              <label className={labelClasses}>Phone</label>
+              <input type="tel" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} className={inputClasses} placeholder="e.g. 9876543210" />
+            </div>
           </section>
 
-          {/* Household Info */}
           <section className="bg-white p-8 md:p-12 rounded-[32px] border border-black/5 shadow-sm space-y-6">
             <h3 className="text-xl font-sans font-semibold text-[#1a1a1a]">Household Information</h3>
-
             <div>
               <label className={labelClasses}>Residential Address</label>
               <textarea rows={3} value={form.address} onChange={e => setForm({ ...form, address: e.target.value })} className={`${inputClasses} resize-none`} placeholder="Enter full residential address" />
             </div>
-
             <div className="flex items-center gap-4">
               <button type="button" onClick={() => setForm({ ...form, isVerified: !form.isVerified })}
                 className={`w-14 h-8 rounded-full transition-all relative ${form.isVerified ? 'bg-[#5A5A40]' : 'bg-[#f5f5f0]'}`}>
@@ -240,49 +280,30 @@ export default function VoterDetail({ voter, voters, houses, onBack, onUpdated }
             </div>
           </section>
 
-          {/* Support Rating */}
           <section className="bg-white p-8 md:p-12 rounded-[32px] border border-black/5 shadow-sm space-y-6">
             <h3 className="text-xl font-sans font-semibold text-[#1a1a1a]">Support Rating</h3>
-            <div>
-              <label className={labelClasses}>Rate Voter Support</label>
-              <div className="flex gap-2">
-                {[1, 2, 3, 4, 5].map(rating => (
-                  <button
-                    key={rating}
-                    type="button"
-                    onClick={() => setForm({ ...form, supportRating: rating })}
-                    className="p-3 rounded-full hover:bg-[#f5f5f0] transition-colors"
-                  >
-                    <Star
-                      className={`w-8 h-8 ${rating <= form.supportRating ? 'fill-amber-400 text-amber-400' : 'text-[#5A5A40]/20'}`}
-                    />
-                  </button>
-                ))}
-                {form.supportRating > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => setForm({ ...form, supportRating: 0 })}
-                    className="ml-2 text-sm text-[#5A5A40]/40 hover:text-[#5A5A40] transition-colors"
-                  >
-                    Clear
-                  </button>
-                )}
-              </div>
-              <p className="text-xs text-[#5A5A40]/60 mt-3">
-                {form.supportRating === 0 && 'No rating set'}
-                {form.supportRating === 1 && '⭐ Strong Opposition'}
-                {form.supportRating === 2 && '⭐⭐ Likely Opposition'}
-                {form.supportRating === 3 && '⭐⭐⭐ Neutral/Undecided'}
-                {form.supportRating === 4 && '⭐⭐⭐⭐ Likely Support'}
-                {form.supportRating === 5 && '⭐⭐⭐⭐⭐ Strong Support'}
-              </p>
+            <div className="flex gap-2">
+              {[1, 2, 3, 4, 5].map(rating => (
+                <button key={rating} type="button" onClick={() => setForm({ ...form, supportRating: rating })} className="p-3 rounded-full hover:bg-[#f5f5f0] transition-colors">
+                  <Star className={`w-8 h-8 ${rating <= form.supportRating ? 'fill-amber-400 text-amber-400' : 'text-[#5A5A40]/20'}`} />
+                </button>
+              ))}
+              {form.supportRating > 0 && (
+                <button type="button" onClick={() => setForm({ ...form, supportRating: 0 })} className="ml-2 text-sm text-[#5A5A40]/40 hover:text-[#5A5A40] transition-colors">Clear</button>
+              )}
             </div>
+            <p className="text-xs text-[#5A5A40]/60">
+              {form.supportRating === 0 && 'No rating set'}
+              {form.supportRating === 1 && '⭐ Strong Opposition'}
+              {form.supportRating === 2 && '⭐⭐ Likely Opposition'}
+              {form.supportRating === 3 && '⭐⭐⭐ Neutral/Undecided'}
+              {form.supportRating === 4 && '⭐⭐⭐⭐ Likely Support'}
+              {form.supportRating === 5 && '⭐⭐⭐⭐⭐ Strong Support'}
+            </p>
           </section>
 
           <div className="flex items-center justify-end gap-6 pt-4">
-            <button type="button" onClick={() => setIsEditing(false)} className="text-[#5A5A40]/60 hover:text-[#5A5A40] font-sans font-medium transition-colors">
-              Cancel
-            </button>
+            <button type="button" onClick={() => setIsEditing(false)} className="text-[#5A5A40]/60 hover:text-[#5A5A40] font-sans font-medium transition-colors">Cancel</button>
             <button type="submit" disabled={saving}
               className="bg-[#5A5A40] hover:bg-[#4a4a30] text-white font-sans py-5 px-12 rounded-full transition-all shadow-xl hover:shadow-2xl active:scale-95 disabled:opacity-50 disabled:pointer-events-none flex items-center gap-3">
               {saving ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <CheckCircle2 className="w-5 h-5" />}
@@ -290,6 +311,18 @@ export default function VoterDetail({ voter, voters, houses, onBack, onUpdated }
             </button>
           </div>
         </form>
+
+        {showAddHouseModal && (
+          <AddHouseModal
+            boothId={voter.boothId}
+            onClose={() => setShowAddHouseModal(false)}
+            onCreated={(houseNumber, houseName) => {
+              setSelectedHouseNumber(houseNumber);
+              setHouseSearch(`${houseNumber} · ${houseName}`);
+              setShowAddHouseModal(false);
+            }}
+          />
+        )}
       </div>
     );
   }
@@ -344,6 +377,7 @@ export default function VoterDetail({ voter, voters, houses, onBack, onUpdated }
           </div>
         ))}
       </div>
+
       {showPhoto && (
         <PhotoModal
           photoURL={voter.photoURL}
@@ -353,27 +387,15 @@ export default function VoterDetail({ voter, voters, houses, onBack, onUpdated }
           onPhoto={(file) => { handlePhotoUpload(file); setShowPhoto(false); }}
         />
       )}
+
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-[40px] p-10 max-w-md w-full shadow-2xl"
-          >
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-white rounded-[40px] p-10 max-w-md w-full shadow-2xl">
             <h3 className="text-2xl font-sans font-semibold mb-4">Delete Voter?</h3>
             <p className="text-[#5A5A40]/60 mb-8">Are you sure you want to delete {voter.name}? This action cannot be undone.</p>
             <div className="flex gap-3">
-              <button
-                onClick={() => setShowDeleteConfirm(false)}
-                className="flex-1 py-3.5 px-6 rounded-full border border-[#5A5A40]/20 text-[#5A5A40] font-sans text-sm hover:bg-[#f5f5f0] transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDelete}
-                disabled={deleting}
-                className="flex-1 py-3.5 px-6 rounded-full bg-red-500 text-white font-sans text-sm hover:bg-red-600 transition-colors shadow-lg disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2"
-              >
+              <button onClick={() => setShowDeleteConfirm(false)} className="flex-1 py-3.5 px-6 rounded-full border border-[#5A5A40]/20 text-[#5A5A40] font-sans text-sm hover:bg-[#f5f5f0] transition-colors">Cancel</button>
+              <button onClick={handleDelete} disabled={deleting} className="flex-1 py-3.5 px-6 rounded-full bg-red-500 text-white font-sans text-sm hover:bg-red-600 transition-colors shadow-lg disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2">
                 {deleting ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : 'Delete'}
               </button>
             </div>

@@ -3,6 +3,7 @@ export interface House {
   boothId: string;
   ownerId: string;
   name: string;
+  nameMl?: string;
   houseNumber: string;
   phone?: string;
   secondaryPhone?: string;
@@ -38,13 +39,19 @@ export interface Voter {
   id: string;
   boothId: string;
   ownerId: string;
+  serialNumber?: number;
   name: string;
+  nameMl?: string;
   age: number;
   birthYear?: number;
   gender: 'Male' | 'Female' | 'Other';
   voterId: string;
   address: string;
   houseNumber?: string;
+  guardianName?: string;
+  guardianNameMl?: string;
+  guardianRelation?: string;
+  phone?: string;
   category?: 'General' | 'OBC' | 'SC' | 'ST';
   incomeLevel?: 'Low' | 'Medium' | 'High';
   isVerified?: boolean;

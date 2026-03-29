@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Voter, Task } from '../types';
+import { Voter, Task, View } from '../types';
 import { cn } from '../lib/utils';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 

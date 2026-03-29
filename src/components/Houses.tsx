@@ -10,8 +10,8 @@ interface HousesProps {
   voters: Voter[];
 }
 
-const inputClasses = 'w-full px-3 py-2 bg-[#f5f5f0] rounded-xl border border-transparent focus:border-[#5A5A40]/30 focus:outline-none focus:ring-0 font-sans text-sm transition-colors';
-const labelClasses = 'block text-[10px] uppercase tracking-wider font-bold text-[#5A5A40]/60 mb-1.5';
+const inputClasses = 'w-full px-6 py-4 bg-[#f5f5f0] rounded-2xl border border-transparent focus:border-[#5A5A40]/20 focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#5A5A40]/5 transition-all font-sans';
+const labelClasses = 'block text-[10px] uppercase tracking-[0.2em] font-bold text-[#5A5A40]/50 mb-3 ml-2';
 
 export default function Houses({ boothId, voters }: HousesProps) {
   const [houses, setHouses] = useState<House[]>([]);

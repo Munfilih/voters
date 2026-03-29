@@ -40,3 +40,10 @@ body {
   }
 }
 
+/* Make all input fields display text in uppercase */
+input,
+textarea,
+select {
+  text-transform: uppercase;
+}
+
