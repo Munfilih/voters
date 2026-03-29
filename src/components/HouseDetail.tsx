@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { ArrowLeft, Building2, Phone, Star, Pencil, Plus, X, Users, CheckCircle2, ChevronRight, Trash2, ListTodo } from 'lucide-react';
-import { auth, db, doc, setDoc, collection, deleteDoc, onSnapshot, query, where } from '../firebase';
+import { auth, db, doc, setDoc, collection, deleteDoc, onSnapshot, query, where, writeBatch } from '../firebase';
 import { House, Voter, Task } from '../types';
 import VoterDetail from './VoterDetail';
 import PhotoModal from './PhotoModal';
@@ -96,6 +96,7 @@ export default function HouseDetail({ house, allHouses, voters, boothId, onBack,
     if (!auth.currentUser) return;
     setEditSaving(true);
     try {
+      const houseNumberChanged = editForm.houseNumber !== house.houseNumber;
       const updated: House = {
         id: house.id,
         boothId: house.boothId,
@@ -109,6 +110,15 @@ export default function HouseDetail({ house, allHouses, voters, boothId, onBack,
         ...(editForm.mainVoterId && { mainVoterId: editForm.mainVoterId }),
       };
       await setDoc(doc(db, 'houses', house.id), updated);
+
+      if (houseNumberChanged && members.length > 0) {
+        const batch = writeBatch(db);
+        members.forEach(v => {
+          batch.update(doc(db, 'voters', v.id), { houseNumber: editForm.houseNumber });
+        });
+        await batch.commit();
+      }
+
       onHouseUpdated(updated);
       setIsEditing(false);
     } catch (err) {

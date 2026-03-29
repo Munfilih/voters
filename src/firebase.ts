@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { getFirestore, collection, doc, setDoc, getDoc, getDocs, query, where, onSnapshot, addDoc, updateDoc, deleteDoc, getDocFromServer } from 'firebase/firestore';
+import { getFirestore, collection, doc, setDoc, getDoc, getDocs, query, where, onSnapshot, addDoc, updateDoc, deleteDoc, getDocFromServer, writeBatch } from 'firebase/firestore';
 
 const firebaseConfig = {
   projectId: "cybee-10fac",
@@ -34,7 +34,8 @@ export {
   addDoc, 
   updateDoc, 
   deleteDoc,
-  getDocFromServer
+  getDocFromServer,
+  writeBatch
 };
 
 // Connection test
