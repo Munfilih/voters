@@ -115,6 +115,8 @@ export default function AddVoterForm({ boothId, onSuccess, compact, preselectedH
     const numbers = value.slice(3).replace(/[^0-9]/g, '');
     return letters + numbers;
   };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement | HTMLSelectElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       const form = e.currentTarget.form;
