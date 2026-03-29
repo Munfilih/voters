@@ -31,6 +31,11 @@ export default function VoterList({ voters, houses, boothId }: VoterListProps) {
       (v.category && v.category.toLowerCase().includes(q)) ||
       (v.incomeLevel && v.incomeLevel.toLowerCase().includes(q))
     );
+  }).sort((a, b) => {
+    if (a.serialNumber && b.serialNumber) return a.serialNumber - b.serialNumber;
+    if (a.serialNumber) return -1;
+    if (b.serialNumber) return 1;
+    return a.name.localeCompare(b.name, undefined, { numeric: true });
   });
 
   if (selectedVoter) {

@@ -101,7 +101,7 @@ export default function Houses({ boothId, voters }: HousesProps) {
         (v.category && v.category.toLowerCase().includes(q))
       )
     );
-  });
+  }).sort((a, b) => a.houseNumber.localeCompare(b.houseNumber, undefined, { numeric: true }));
 
   if (selectedHouse) {
     return (
