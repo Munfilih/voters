@@ -5,7 +5,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
   PieChart, Pie, Cell, Legend, AreaChart, Area 
 } from 'recharts';
-import { Users, UserCheck, UserX, TrendingUp, MapPin, Activity, ListTodo, Search, X, CheckCircle2, Star } from 'lucide-react';
+import { Users, UserCheck, TrendingUp, Activity, CheckCircle2, Star } from 'lucide-react';
 
 interface DashboardProps {
   voters: Voter[];
@@ -19,6 +19,7 @@ export default function Dashboard({ voters, tasks = [], onNavigate }: DashboardP
   const stats = useMemo(() => {
     const total = voters.length;
     const verified = voters.filter(v => v.isVerified).length;
+    const removed = voters.filter(v => v.isRemoved);
     const pending = total - verified;
     const male = voters.filter(v => v.gender === 'Male').length;
     const female = voters.filter(v => v.gender === 'Female').length;
@@ -46,37 +47,6 @@ export default function Dashboard({ voters, tasks = [], onNavigate }: DashboardP
       ? ratedVoters.reduce((sum, v) => sum + (v.supportRating || 0), 0) / ratedVoters.length 
       : 0;
 
-    // Predicted Votes Calculation
-    // Logic: Calculate expected votes based on support ratings and verification status
-    let predictedVotes = 0;
-    
-    voters.forEach(v => {
-      if (!v.supportRating || v.supportRating === 0) {
-        // No rating: assume 50% chance if verified, 30% if not
-        predictedVotes += v.isVerified ? 0.5 : 0.3;
-      } else {
-        // Rating-based prediction:
-        // 5 stars (Strong Support): 95% probability
-        // 4 stars (Likely Support): 75% probability
-        // 3 stars (Neutral): 50% probability
-        // 2 stars (Likely Opposition): 25% probability
-        // 1 star (Strong Opposition): 5% probability
-        const probabilities = [0.05, 0.25, 0.5, 0.75, 0.95];
-        const baseProbability = probabilities[v.supportRating - 1];
-        
-        // Boost probability by 10% if verified (more reliable data)
-        const verificationBoost = v.isVerified ? 0.1 : 0;
-        const finalProbability = Math.min(baseProbability + verificationBoost, 1);
-        
-        predictedVotes += finalProbability;
-      }
-    });
-
-    // Calculate confidence level based on rated voters percentage
-    const ratedPercentage = total > 0 ? (ratedVoters.length / total) * 100 : 0;
-    const verifiedPercentage = total > 0 ? (verified / total) * 100 : 0;
-    const confidenceLevel = ((ratedPercentage * 0.7) + (verifiedPercentage * 0.3));
-
     return { 
       total, 
       verified, 
@@ -87,15 +57,13 @@ export default function Dashboard({ voters, tasks = [], onNavigate }: DashboardP
       ageGroups, 
       supportRatings, 
       avgSupport,
-      predictedVotes: Math.round(predictedVotes),
-      confidenceLevel: Math.round(confidenceLevel),
-      ratedCount: ratedVoters.length
+      ratedCount: ratedVoters.length,
+      removed,
     };
   }, [voters]);
 
   const cards = [
     { label: 'Total Voters', value: stats.total, icon: Users, color: 'text-[#5A5A40]', onClick: () => onNavigate?.('voter-list') },
-    { label: 'Predicted Votes', value: stats.predictedVotes, icon: TrendingUp, color: 'text-purple-600', subtext: `${stats.confidenceLevel}% confidence`, onClick: () => onNavigate?.('voter-list', 'support') },
     { label: 'Verified', value: stats.verified, icon: UserCheck, color: 'text-green-600', onClick: () => onNavigate?.('voter-list', 'verified') },
     { label: 'Avg Support', value: stats.avgSupport > 0 ? stats.avgSupport.toFixed(1) : '—', icon: Activity, color: 'text-blue-600', subtext: `${stats.ratedCount} rated`, onClick: () => onNavigate?.('voter-list', 'support') },
   ];
@@ -103,15 +71,14 @@ export default function Dashboard({ voters, tasks = [], onNavigate }: DashboardP
   const [serialInput, setSerialInput] = useState('');
   const [lookedUpVoter, setLookedUpVoter] = useState<Voter | null | undefined>(undefined);
 
-  const handleSerialLookup = (val: string) => {
-    setSerialInput(val);
-    if (!val.trim()) { setLookedUpVoter(undefined); return; }
-    const found = voters.find(v => String(v.serialNumber) === val.trim());
+  const handleSerialLookup = () => {
+    if (!serialInput.trim()) return;
+    const found = voters.find(v => String(v.serialNumber) === serialInput.trim());
     setLookedUpVoter(found ?? null);
   };
 
   return (
-    <div className="space-y-12" key={`dashboard-${voters.length}-${stats.predictedVotes}`}>
+    <div className="space-y-12" key={`dashboard-${voters.length}`}>
       <header>
         <h2 className="text-2xl md:text-4xl font-sans font-semibold text-[#1a1a1a] mb-2">
           Booth Analytics
@@ -127,21 +94,19 @@ export default function Dashboard({ voters, tasks = [], onNavigate }: DashboardP
           <span className="w-2 h-2 rounded-full bg-[#5A5A40]"></span>
           Voter Lookup by Serial Number
         </h3>
-        <div className="relative max-w-xs">
-          <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5A5A40]/30" />
+        <div className="flex gap-3 max-w-xs">
           <input
             type="number"
             inputMode="numeric"
-            placeholder="Enter serial number..."
+            placeholder="Serial number"
             value={serialInput}
-            onChange={e => handleSerialLookup(e.target.value)}
-            className="w-full pl-12 pr-10 py-4 bg-[#f5f5f0] rounded-2xl border border-transparent focus:border-[#5A5A40]/20 focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#5A5A40]/5 transition-all font-sans"
+            onChange={e => { setSerialInput(e.target.value); setLookedUpVoter(undefined); }}
+            onKeyDown={e => e.key === 'Enter' && handleSerialLookup()}
+            className="w-full px-6 py-4 bg-[#f5f5f0] rounded-2xl border border-transparent focus:border-[#5A5A40]/20 focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#5A5A40]/5 transition-all font-sans [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
           />
-          {serialInput && (
-            <button onClick={() => { setSerialInput(''); setLookedUpVoter(undefined); }} className="absolute right-4 top-1/2 -translate-y-1/2">
-              <X className="w-4 h-4 text-[#5A5A40]/30 hover:text-[#5A5A40]" />
-            </button>
-          )}
+          <button onClick={handleSerialLookup} className="shrink-0 px-6 py-4 rounded-2xl bg-[#5A5A40] text-white text-sm font-bold hover:bg-[#4a4a30] transition-colors">
+            Find
+          </button>
         </div>
 
         {lookedUpVoter === null && (
@@ -212,54 +177,6 @@ export default function Dashboard({ voters, tasks = [], onNavigate }: DashboardP
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8">
-        {/* Prediction Breakdown */}
-        <div className="bg-white p-4 md:p-10 rounded-[24px] md:rounded-[40px] border border-black/5 shadow-sm">
-          <h3 className="text-base md:text-xl font-sans font-semibold mb-4 md:mb-8 flex items-center gap-3">
-            <span className="w-2 h-2 rounded-full bg-purple-600"></span>
-            Vote Prediction Analysis
-          </h3>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-transparent rounded-2xl">
-              <div>
-                <p className="text-xs uppercase tracking-widest font-bold text-[#5A5A40]/40">Predicted Votes</p>
-                <p className="text-3xl font-sans font-bold text-purple-600">{stats.predictedVotes}</p>
-              </div>
-              <div className="text-right">
-                <p className="text-xs uppercase tracking-widest font-bold text-[#5A5A40]/40">Out of</p>
-                <p className="text-2xl font-sans font-bold text-[#5A5A40]">{stats.total}</p>
-              </div>
-            </div>
-            
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-[#5A5A40]/60">Confidence Level</span>
-                <span className="text-sm font-bold text-[#5A5A40]">{stats.confidenceLevel}%</span>
-              </div>
-              <div className="w-full bg-[#f5f5f0] rounded-full h-3 overflow-hidden">
-                <div 
-                  className="h-full bg-gradient-to-r from-purple-500 to-purple-600 rounded-full transition-all duration-500"
-                  style={{ width: `${stats.confidenceLevel}%` }}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 pt-4">
-              <div className="p-3 bg-[#f5f5f0] rounded-xl">
-                <p className="text-[9px] uppercase tracking-widest font-bold text-[#5A5A40]/40 mb-1">Rated Voters</p>
-                <p className="text-lg font-sans font-bold text-[#5A5A40]">{stats.ratedCount}</p>
-                <p className="text-[9px] text-[#5A5A40]/60">{stats.total > 0 ? Math.round((stats.ratedCount / stats.total) * 100) : 0}% of total</p>
-              </div>
-              <div className="p-3 bg-[#f5f5f0] rounded-xl">
-                <p className="text-[9px] uppercase tracking-widest font-bold text-[#5A5A40]/40 mb-1">Win Probability</p>
-                <p className="text-lg font-sans font-bold text-[#5A5A40]">{stats.total > 0 ? Math.round((stats.predictedVotes / stats.total) * 100) : 0}%</p>
-                <p className="text-[9px] text-[#5A5A40]/60">Expected turnout</p>
-              </div>
-            </div>
-
-
-          </div>
-        </div>
-
         {/* Age Distribution */}
         <div className="bg-white p-4 md:p-10 rounded-[24px] md:rounded-[40px] border border-black/5 shadow-sm">
           <h3 className="text-base md:text-xl font-sans font-semibold mb-4 md:mb-8 flex items-center gap-3">
@@ -369,6 +286,27 @@ export default function Dashboard({ voters, tasks = [], onNavigate }: DashboardP
           </div>
         )}
       </div>
+
+      {/* Removed Voters */}
+      {stats.removed.length > 0 && (
+        <div className="bg-white rounded-[32px] p-6 md:p-10 border border-black/5 shadow-sm">
+          <h3 className="text-base md:text-xl font-sans font-semibold mb-5 flex items-center gap-3">
+            <span className="w-2 h-2 rounded-full bg-red-500"></span>
+            Removed Voters <span className="text-sm font-normal text-[#5A5A40]/40 ml-1">({stats.removed.length})</span>
+          </h3>
+          <div className="bg-white rounded-2xl border border-black/5 overflow-hidden">
+            {stats.removed.map((v, i) => (
+              <div key={v.id} className={`flex items-center justify-between px-6 py-4 ${i > 0 ? 'border-t border-black/5' : ''}`}>
+                <div>
+                  <p className="font-sans font-medium text-[#1a1a1a] uppercase line-through opacity-50">{v.name}</p>
+                  <p className="text-[10px] uppercase tracking-widest font-bold text-[#5A5A40]/30">{v.voterId} · {v.gender} · {v.age}</p>
+                </div>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-red-400 bg-red-50 px-3 py-1 rounded-full">Removed</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

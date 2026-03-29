@@ -55,6 +55,7 @@ export interface Voter {
   category?: 'General' | 'OBC' | 'SC' | 'ST';
   incomeLevel?: 'Low' | 'Medium' | 'High';
   isVerified?: boolean;
+  isRemoved?: boolean;
   photoURL?: string;
   supportRating?: number;
   createdAt?: any;

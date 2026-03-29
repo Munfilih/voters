@@ -34,6 +34,7 @@ export default function VoterDetail({ voter, voters, houses, onBack, onUpdated }
     voterId: voter.voterId,
     address: voter.address || '',
     isVerified: voter.isVerified || false,
+    isRemoved: voter.isRemoved || false,
     supportRating: voter.supportRating || 0,
     serialNumber: voter.serialNumber ? String(voter.serialNumber) : '',
     guardianName: voter.guardianName || '',
@@ -124,6 +125,7 @@ export default function VoterDetail({ voter, voters, houses, onBack, onUpdated }
         address: form.address,
         houseNumber: selectedHouseNumber,
         isVerified: form.isVerified,
+      isRemoved: form.isRemoved,
         supportRating: form.supportRating,
         guardianRelation: form.guardianRelation || voter.guardianRelation,
       };
@@ -300,6 +302,16 @@ export default function VoterDetail({ voter, voters, houses, onBack, onUpdated }
               <div>
                 <p className="text-sm font-medium text-[#1a1a1a]">Identity Verified</p>
                 <p className="text-[10px] text-[#5A5A40]/50 uppercase tracking-widest font-bold">Physical verification completed</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <button type="button" onClick={() => setForm({ ...form, isRemoved: !form.isRemoved })}
+                className={`w-14 h-8 rounded-full transition-all relative ${form.isRemoved ? 'bg-red-500' : 'bg-[#f5f5f0]'}`}>
+                <div className={`absolute top-1 w-6 h-6 rounded-full bg-white shadow-sm transition-all ${form.isRemoved ? 'left-7' : 'left-1'}`} />
+              </button>
+              <div>
+                <p className="text-sm font-medium text-[#1a1a1a]">Removed</p>
+                <p className="text-[10px] text-[#5A5A40]/50 uppercase tracking-widest font-bold">Voter removed from booth list</p>
               </div>
             </div>
           </section>
