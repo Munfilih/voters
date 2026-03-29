@@ -74,6 +74,36 @@ export default function App() {
     return onSnapshot(q, snap => setTasks(snap.docs.map(d => ({ id: d.id, ...d.data() } as Task))));
   }, [user, currentBooth]);
 
+  // Intercept browser back button & page close
+  useEffect(() => {
+    if (!user || !currentBooth) return;
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+
+    // Push a dummy state so back button hits it first
+    window.history.pushState({ appState: true }, '');
+
+    const handlePopState = () => {
+      const confirmed = window.confirm('Are you sure you want to leave the app?');
+      if (confirmed) {
+        window.history.go(-1);
+      } else {
+        // Re-push so back button works again next time
+        window.history.pushState({ appState: true }, '');
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [user, currentBooth]);
+
   const handleViewChange = (view: View) => {
     if (view !== 'profile') {
       setPreviousView(view);
