@@ -104,8 +104,8 @@ export default function VoterDetail({ voter, voters, houses, onBack, onUpdated }
     h.name.toLowerCase().includes(houseSearch.toLowerCase())
   );
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSave = async (e?: React.FormEvent) => {
+    e?.preventDefault();
     setShowHouseDropdown(false);
     if (!auth.currentUser) return;
     setSaving(true);
@@ -320,7 +320,7 @@ export default function VoterDetail({ voter, voters, houses, onBack, onUpdated }
 
           <div className="flex items-center justify-end gap-6 pt-4">
             <button type="button" onClick={() => setIsEditing(false)} className="text-[#5A5A40]/60 hover:text-[#5A5A40] font-sans font-medium transition-colors">Cancel</button>
-            <button type="submit" disabled={saving}
+            <button type="button" disabled={saving} onClick={() => handleSave()}
               className="bg-[#5A5A40] hover:bg-[#4a4a30] text-white font-sans py-5 px-12 rounded-full transition-all shadow-xl hover:shadow-2xl active:scale-95 disabled:opacity-50 disabled:pointer-events-none flex items-center gap-3">
               {saving ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <CheckCircle2 className="w-5 h-5" />}
               Save Changes
