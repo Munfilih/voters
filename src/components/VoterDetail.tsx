@@ -330,7 +330,7 @@ export default function VoterDetail({ voter, voters, houses, onBack, onUpdated }
           <AddHouseModal
             boothId={voter.boothId}
             onClose={() => setShowAddHouseModal(false)}
-            onCreated={(houseNumber, houseName) => {
+            onCreated={(houseNumber, houseName, _id) => {
               setSelectedHouseNumber(houseNumber);
               setHouseSearch(`${houseNumber} · ${houseName}`);
               setShowAddHouseModal(false);

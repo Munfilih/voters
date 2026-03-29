@@ -6,7 +6,7 @@ import { auth, db, collection, doc, setDoc } from '../firebase';
 interface AddHouseModalProps {
   boothId: string;
   onClose: () => void;
-  onCreated: (houseNumber: string, houseName: string) => void;
+  onCreated: (houseNumber: string, houseName: string, id: string) => void;
 }
 
 const inputClasses = 'w-full px-6 py-4 bg-[#f5f5f0] rounded-2xl border border-transparent focus:border-[#5A5A40]/20 focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#5A5A40]/5 transition-all font-sans';
@@ -44,7 +44,7 @@ export default function AddHouseModal({ boothId, onClose, onCreated }: AddHouseM
         ...(form.secondaryPhone && { secondaryPhone: form.secondaryPhone }),
         createdAt: new Date().toISOString(),
       });
-      onCreated(form.houseNumber, form.name);
+      onCreated(form.houseNumber, form.name, ref.id);
     } catch (err) {
       console.error('Error adding house:', err);
     } finally {

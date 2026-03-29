@@ -98,6 +98,19 @@ export default function AddVoterForm({ boothId, onSuccess, compact, preselectedH
     }
   };
 
+  const [pendingHouseId, setPendingHouseId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!pendingHouseId) return;
+    const found = houses.find(h => h.id === pendingHouseId);
+    if (found) {
+      setSelectedHouse(found);
+      setHouseSearch(`${found.houseNumber} · ${found.name}`);
+      setFormData(prev => ({ ...prev, houseNumber: found.houseNumber, houseName: found.name }));
+      setPendingHouseId(null);
+    }
+  }, [houses, pendingHouseId]);
+
   const filteredHouses = houses.filter(h =>
     h.houseNumber.toLowerCase().includes(houseSearch.toLowerCase()) ||
     h.name.toLowerCase().includes(houseSearch.toLowerCase())
@@ -271,10 +284,9 @@ export default function AddVoterForm({ boothId, onSuccess, compact, preselectedH
     <AddHouseModal
       boothId={boothId}
       onClose={() => setShowAddHouseModal(false)}
-      onCreated={(houseNumber, houseName) => {
-        setSelectedHouse({ id: '', boothId, ownerId: '', name: houseName, houseNumber });
+      onCreated={(houseNumber, houseName, id) => {
         setHouseSearch(`${houseNumber} · ${houseName}`);
-        setFormData(prev => ({ ...prev, houseNumber, houseName }));
+        setPendingHouseId(id);
         setShowAddHouseModal(false);
       }}
     />
